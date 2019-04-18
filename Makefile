@@ -1,9 +1,15 @@
 CXX=g++
 CPPFLAGS=-std=c++11
-OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
-sim: $(OBJECTS)
-	$(CXX) $(CPPFLAGS) -o sim $(OBJECTS)
+BIN = bin
+BUILD = build
+SRC = src
+SRC_SIM = $(SRC)/sim
+
+SIM_OBJ := $(patsubst %.cpp,%.o,$(wildcard $(SRC_SIM)/*.cpp))
+
+sim: $(SIM_OBJ)
+	$(CXX) $(CPPFLAGS) -o sim $(SIM_OBJ)
 
 clean:
-	rm -f $(OBJECTS)
+	rm -f $(SIM_OBJ)
