@@ -1,7 +1,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "ExampleModule.h"
+#include "example_module.h"
 
 using namespace std;
 
