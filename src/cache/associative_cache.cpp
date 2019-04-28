@@ -1,6 +1,33 @@
+#include <cstring>
 #include <iostream>
 
 #include "associative_cache.hpp"
+
+
+ass_cache_msg * AssociativeCache::craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm)
+{
+	ass_cache_msg *msg = new ass_cache_msg();
+	
+	msg->op_type = op;
+	msg->target = tgt;
+	msg->victim = vcm;
+
+	return msg;
+}
+
+
+message * AssociativeCache::craft_msg(char *dest, void *content)
+{
+	message *msg = new message();
+	
+	msg->valid = 1;
+	msg->timestamp = getTime();
+	strncpy(msg->source, getName().c_str(), 10);
+	strncpy(msg->dest, dest, 10);
+	msg->magic_struct = content;
+	
+	return msg;
+}
 
 
 AssociativeCache::AssociativeCache(string name, unsigned n_ways,
