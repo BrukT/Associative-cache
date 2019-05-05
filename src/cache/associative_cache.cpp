@@ -4,9 +4,9 @@
 #include "associative_cache.hpp"
 
 
-ass_cache_msg * AssociativeCache::craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm)
+cache_message * AssociativeCache::craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm)
 {
-	ass_cache_msg *msg = new ass_cache_msg();
+	cache_message *msg = new cache_message();
 	
 	msg->op_type = op;
 	msg->target = tgt;

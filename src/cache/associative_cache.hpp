@@ -16,7 +16,7 @@ class AssociativeCache : public module
 	unsigned n_ways;
 	std::vector<DirectCache*> ways;
 	
-	ass_cache_msg * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
+	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(char *dest, void *content);
 	
 	
