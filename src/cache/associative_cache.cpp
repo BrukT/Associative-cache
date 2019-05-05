@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 #include <iostream>
 
@@ -30,6 +31,30 @@ message * AssociativeCache::craft_msg(char *dest, void *content)
 }
 
 
+void AssociativeCache::handle_msg_read_prev(cache_message *cm) {
+	status.push(AssCacheStatus::READ_UP);
+	/* TODO ... */
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::READ_UP);
+}
+
+
+void AssociativeCache::handle_msg_read_next(cache_message *cm) {
+	/* TODO ... */
+}
+
+
+void AssociativeCache::handle_msg_write_prev(cache_message *cm) {
+	/* TODO ... */
+}
+
+
+void AssociativeCache::handle_msg_write_next(cache_message *cm) {
+	/* TODO ... */	
+}
+
+
 AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, string next_name,
 			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
 			bool write_policy, bool allocate_policy, int priority)
@@ -57,10 +82,39 @@ void AssociativeCache::onNotify(message* m)
 	std::cout << getName() << ": was notified" << std::endl;	// DEBUG
 	
 	// Check if this is the recipient of the message (if not, exit)
-	if (getName() != m->dest)
+	if (getName().compare(m->dest) != 0)
 		return;
 
-	
+	// Demultiplex based on source
+	if (prev_name.compare(m->source) == 0) {
+		// previous level
+		cache_message *cm = (cache_message *)m->magic_struct;
+		switch (cm->op_type) {
+			case OP_READ:
+				handle_msg_read_prev(cm);
+				break;
+			case OP_WRITE:
+				handle_msg_write_prev(cm);
+				break;
+		}
+	} else if (next_name.compare(m->source) == 0) {
+		// next level
+		cache_message *cm = (cache_message *)m->magic_struct;
+		switch (cm->op_type) {
+			case OP_READ:
+				handle_msg_read_next(cm);
+				break;
+			case OP_WRITE:
+				handle_msg_write_next(cm);
+				break;
+		}
+	} else if (getName().compare(0, getName().size(), m->source, 0, getName().size()) == 0) {
+		// inner direct cache
+		/* TODO */
+	} else {
+		// unknown
+		std::cerr << "Error: bad message source" << std::endl;
+	}
 	// Check the message type (LOAD, STORE or RESPONSE)
 	// If LOAD or STORE, forward the request to the inner direct caches 
 	// If RESPONSE, check if HIT/MISS/ACK and handle it accordingly
