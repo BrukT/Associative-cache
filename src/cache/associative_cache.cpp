@@ -30,13 +30,25 @@ message * AssociativeCache::craft_msg(char *dest, void *content)
 }
 
 
-AssociativeCache::AssociativeCache(string name, unsigned n_ways,
-		std::vector<DirectCache*> ways, int priority)
+AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, string next_name,
+			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
+			bool write_policy, bool allocate_policy, int priority)
 	: module(name, priority),
+	  prev_name(prev_name),
+	  next_name(next_name),
 	  n_ways(n_ways),
-	  ways(ways)
+	  cache_size(cache_size),
+	  block_size(block_size),
+	  mem_unit_size(mem_unit_size),
+	  write_policy(write_policy),
+	  allocate_policy(allocate_policy)
 {
-	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG 
+	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG
+	for (unsigned i = 0; i < n_ways; ++i) {
+		DirectCache *dcache = new DirectCache(name + "_" + std::to_string(i));
+		ways.push_back(dcache);
+		sys.addModule(dcache);
+	}
 }
 
 
@@ -44,8 +56,11 @@ void AssociativeCache::onNotify(message* m)
 {
 	std::cout << getName() << ": was notified" << std::endl;	// DEBUG
 	
-	/* Pseudocode */
 	// Check if this is the recipient of the message (if not, exit)
+	if (getName() != m->dest)
+		return;
+
+	
 	// Check the message type (LOAD, STORE or RESPONSE)
 	// If LOAD or STORE, forward the request to the inner direct caches 
 	// If RESPONSE, check if HIT/MISS/ACK and handle it accordingly
