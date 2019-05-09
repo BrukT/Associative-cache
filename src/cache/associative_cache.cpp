@@ -5,6 +5,7 @@
 #include "associative_cache.hpp"
 
 
+/* Create the payload of a message to interact with the other memory levels in the hierarchy */
 cache_message * AssociativeCache::craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm)
 {
 	cache_message *msg = new cache_message();
@@ -17,6 +18,7 @@ cache_message * AssociativeCache::craft_ass_cache_msg(bool op, mem_unit tgt, mem
 }
 
 
+/* Create a message with custom content to send to the specified recipient */
 message * AssociativeCache::craft_msg(char *dest, void *content)
 {
 	message *msg = new message();
@@ -31,27 +33,91 @@ message * AssociativeCache::craft_msg(char *dest, void *content)
 }
 
 
-void AssociativeCache::handle_msg_read_prev(cache_message *cm) {
+/* Routine to follow when a cache miss is generated */
+void AssociativeCache::cache_miss_routine(addr_t addr)
+{
+	/* TODO */
+}
+
+
+/* Routine to follow when receiving a 'read' message from the upper level */
+void AssociativeCache::handle_msg_read_prev(cache_message *cm)
+{
+	bool is_size_word;	// 0: block; 1: word
+	
 	status.push(AssCacheStatus::READ_UP);
-	/* TODO ... */
+	
+	/* TODO: determine size of the read requests (depends on mem_unit_size attribute) */
+	for (auto &dc : ways) {
+		/* TODO: craft read request to direct cache
+		 * TODO: dispatch message 
+		 * */
+	}
+	
+	if (is_size_word) 
+		status.push(AssCacheStatus::READ_WORD_IN);
+	else /* read size is a block */
+		status.push(AssCacheStatus::READ_BLOCK_IN);
+}
+
+
+/* Routine to follow when receiving a 'read' message from the lower level */
+void AssociativeCache::handle_msg_read_next(cache_message *cm) 
+{	
 	AssCacheStatus acs = status.top();
 	status.pop();
-	assert(acs == AssCacheStatus::READ_UP);
+	assert(acs == AssCacheStatus::MISS);
+	
+	/* TODO: replace the previously chosen victim with the just received block */
+	status.push(AssCacheStatus::WRITE_BLOCK_IN);
+	/* TODO: send request */
 }
 
 
-void AssociativeCache::handle_msg_read_next(cache_message *cm) {
+/* Routine to follow when receiving a 'read' message from a nested direct cache */
+void AssociativeCache::handle_msg_read_inner(cache_message *cm)
+{
+	bool hit;
+	/* TODO: store the content of the message (for future use) */
+	/* TODO: if this is not the last reply (i.e. we expect more responses), return */
+	/* TODO: compute hit/miss on the basis of ALL the received replies */
+	if (hit) {
+		/* TODO: craft response message for previous level */
+		/* TODO: send it */
+	} else {
+		cache_miss_routine(cm->target.addr);
+	}
+}
+
+
+/* Routine to follow when receiving a 'write' message from the upper level */
+void AssociativeCache::handle_msg_write_prev(cache_message *cm)
+{
+	status.push(AssCacheStatus::WRITE_UP);
+	for (auto &dc : ways) {
+		/* TODO: craft write request to direct cache
+		 * TODO: dispatch message 
+		 * */
+	}
+	status.push(AssCacheStatus::WRITE_WORD_IN);
+}
+
+
+/* Routine to follow when receiving a 'write' message from the lower level */
+void AssociativeCache::handle_msg_write_next(cache_message *cm)
+{
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::WRITE_UP);
+	
+	/* TODO: propagate ack message to previous level (same fields) */
+}
+
+
+/* Routine to follow when receiving a 'write' message from a nested direct cache */
+void AssociativeCache::handle_msg_write_inner(cache_message *cm)
+{
 	/* TODO ... */
-}
-
-
-void AssociativeCache::handle_msg_write_prev(cache_message *cm) {
-	/* TODO ... */
-}
-
-
-void AssociativeCache::handle_msg_write_next(cache_message *cm) {
-	/* TODO ... */	
 }
 
 

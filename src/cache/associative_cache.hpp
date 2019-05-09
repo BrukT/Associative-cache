@@ -40,10 +40,13 @@ class AssociativeCache : public module
 	
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(char *dest, void *content);
+	void cache_miss_routine(addr_t addr);
 	void handle_msg_read_prev(cache_message *cm);
 	void handle_msg_read_next(cache_message *cm);
+	void handle_msg_read_inner(cache_message *cm);
 	void handle_msg_write_prev(cache_message *cm);
 	void handle_msg_write_next(cache_message *cm);
+	void handle_msg_write_inner(cache_message *cm);
 	
 	
 public:
