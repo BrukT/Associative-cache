@@ -12,6 +12,21 @@
 #include "messages.hpp"
 #include "mock_direct_cache.hpp"
 
+enum class WritePolicy {
+	WRITE_THROUGH,
+	WRITE_BACK
+};
+
+enum class AllocationPolicy {
+	WRITE_AROUND,
+	WRITE_ALLOCATE
+};
+
+enum class ReplacementPolicy {
+	PLRU,
+	LFU
+};
+
 
 class AssociativeCache : public module
 {
@@ -33,14 +48,17 @@ class AssociativeCache : public module
 	unsigned cache_size; 	// [byte] total size of the cache
 	unsigned block_size; 	// [byte] size of a block
 	unsigned mem_unit_size; // [byte] size of data to read
-	bool write_policy;		// cache write policy | 0: write through; 1: write back
-	bool allocate_policy; 	// write miss policy  | 0: write around; 1: write allocate
-	std::vector<DirectCache*> ways;
-	std::stack<AssCacheStatus> status;
+	WritePolicy write_policy;		// cache write policy
+	AllocationPolicy alloc_policy; 	// write miss allocation policy
+	ReplacementPolicy repl_policy;	// replacement policy (victim choice)
+	std::vector<DirectCache*> ways;		// direct caches
+	std::stack<AssCacheStatus> status; 	// stateful component
+	unsigned target_way;	// direct cache index where to write the missing block
 	
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(char *dest, void *content);
-	void cache_miss_routine(addr_t addr);
+	bool determine_way(unsigned& way, mem_unit& victim);
+	void cache_miss_routine(addr_t addr, mem_unit& victim);
 	void handle_msg_read_prev(cache_message *cm);
 	void handle_msg_read_next(cache_message *cm);
 	void handle_msg_read_inner(cache_message *cm);
@@ -52,6 +70,7 @@ class AssociativeCache : public module
 public:
 	AssociativeCache(System& sys, string name, string prev_name, string next_name,
 			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
-			bool write_policy, bool allocate_policy, int priority=0);
+			WritePolicy write_policy, AllocationPolicy alloc_policy,
+			ReplacementPolicy repl_policy, int priority=0);
 	void onNotify(message* m);
 };
