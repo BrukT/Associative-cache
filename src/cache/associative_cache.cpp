@@ -33,10 +33,48 @@ message * AssociativeCache::craft_msg(char *dest, void *content)
 }
 
 
-/* Routine to follow when a cache miss is generated */
-void AssociativeCache::cache_miss_routine(addr_t addr)
+/* Determine which direct cache will be used to store the new data.
+ * Returns true if a victim had to be selected (its address and content 
+ * are returned in the parameters), false otherwise.
+ */
+bool AssociativeCache::determine_way(unsigned& way, mem_unit& victim)
 {
-	/* TODO */
+	/* TODO: Scan through the direct caches looking for any free one. 
+	 * If found, then return it, else proceed 
+	 * */
+	bool free = false;
+	for (unsigned i = 0; i < n_ways; ++i) {
+		/* TODO Check if that cache is free */
+		if (free) {
+			way = i;
+			return false;
+		}
+	}
+	
+	// At this point, no cache is free, and we must pick a victim
+	if (victim.data == nullptr) {
+		/* TODO: use the replacement policy to determine the way */
+	} else {
+		/* TODO: (predetermined victim) find the way corresponding to victim.addr */
+	}
+	return true;
+}
+
+
+/* Routine to follow when a cache miss is generated */
+void AssociativeCache::cache_miss_routine(addr_t addr, mem_unit& victim)
+{
+	bool is_replacement;
+	
+	status.push(AssCacheStatus::READ_UP);
+	
+	is_replacement = determine_way(this->target_way, victim);
+	
+	if (is_replacement) {
+		/* TODO: Craft request to read from below (don't forget to specify the victim) */
+	} else {
+		/* TODO: Craft request to read from below (victim.data=nullptr) */
+	}
 }
 
 
@@ -85,7 +123,8 @@ void AssociativeCache::handle_msg_read_inner(cache_message *cm)
 		/* TODO: craft response message for previous level */
 		/* TODO: send it */
 	} else {
-		cache_miss_routine(cm->target.addr);
+		mem_unit msg_vict = cm->victim;	// avoid overwriting the message (precaution)
+		cache_miss_routine(cm->target.addr, msg_vict);
 	}
 }
 
@@ -123,7 +162,8 @@ void AssociativeCache::handle_msg_write_inner(cache_message *cm)
 
 AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, string next_name,
 			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
-			bool write_policy, bool allocate_policy, int priority)
+			WritePolicy write_policy, AllocationPolicy alloc_policy, 
+			ReplacementPolicy repl_policy, int priority)
 	: module(name, priority),
 	  prev_name(prev_name),
 	  next_name(next_name),
@@ -132,7 +172,8 @@ AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, s
 	  block_size(block_size),
 	  mem_unit_size(mem_unit_size),
 	  write_policy(write_policy),
-	  allocate_policy(allocate_policy)
+	  alloc_policy(alloc_policy),
+	  repl_policy(repl_policy)
 {
 	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG
 	for (unsigned i = 0; i < n_ways; ++i) {
