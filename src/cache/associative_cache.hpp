@@ -53,18 +53,20 @@ class AssociativeCache : public module
 	ReplacementPolicy repl_policy;	// replacement policy (victim choice)
 	std::vector<DirectCache*> ways;		// direct caches
 	std::stack<AssCacheStatus> status; 	// stateful component
-	unsigned target_way;	// direct cache index where to write the missing block
+	unsigned target_way;		// direct cache index where to write the missing block
+	bool is_vict_predet;		// victim predetermined by upper levels
+	addr_t vict_predet_addr; 	// address of victim when predetermined
 	
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
-	message * craft_msg(char *dest, void *content);
+	message * craft_msg(string dest, void *content);
 	bool determine_way(unsigned& way, mem_unit& victim);
-	void cache_miss_routine(addr_t addr, mem_unit& victim);
+	void cache_miss_routine(addr_t addr);
 	void handle_msg_read_prev(cache_message *cm);
 	void handle_msg_read_next(cache_message *cm);
-	void handle_msg_read_inner(cache_message *cm);
+	void handle_msg_read_inner(dir_cache_message *cm, unsigned way_idx);
 	void handle_msg_write_prev(cache_message *cm);
 	void handle_msg_write_next(cache_message *cm);
-	void handle_msg_write_inner(cache_message *cm);
+	void handle_msg_write_inner(dir_cache_message *cm, unsigned way_idx);
 	
 	
 public:
