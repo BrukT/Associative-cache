@@ -8,20 +8,16 @@
 #include "mock_dm_cache.hpp"
 
 #include "messages.hpp"
+#include "policies.hpp"
 
 
-enum HIT_POLICY {WRITE_BACK, WRITE_THROUGH};
-enum MISS_POLICY {WRITE_ALLOCATE, WRITE_NO_ALLOCATE};
-
-
-class CacheWritePolicies : public dm_cache::Cache, private module {
+class CacheWritePolicies : public dm_cache::Cache, public module {
 	
-	HIT_POLICY hit_policy;
-	MISS_POLICY miss_policy;
+	WritePolicy hit_policy;
+	AllocationPolicy miss_policy;
 	
 	message* WP_create_message(std::string destination);
 	
-	//functions implementation
 	CWP_to_SAC* WP_set_dirty(SAC_to_CWP* request_struct);
 	CWP_to_SAC* WP_check_validity_dirty(SAC_to_CWP* request_struct);
 	CWP_to_SAC* WP_check_data_validity(SAC_to_CWP* request_struct);
@@ -33,7 +29,7 @@ class CacheWritePolicies : public dm_cache::Cache, private module {
 		
 public:
 
-	CacheWritePolicies(string name, int priority, uint16_t cache_size, uint16_t line_size, HIT_POLICY hp, MISS_POLICY mp);
+	CacheWritePolicies(string name, int priority, uint16_t cache_size, uint16_t line_size, WritePolicy hp, AllocationPolicy mp);
 	void onNotify(message *m);	
 };
 

@@ -10,22 +10,8 @@
 #include "system/System.h"
 
 #include "messages.hpp"
-#include "mock_direct_cache.hpp"
-
-enum class WritePolicy {
-	WRITE_THROUGH,
-	WRITE_BACK
-};
-
-enum class AllocationPolicy {
-	WRITE_AROUND,
-	WRITE_ALLOCATE
-};
-
-enum class ReplacementPolicy {
-	PLRU,
-	LFU
-};
+#include "mock_write_policy.hpp"
+#include "policies.hpp"
 
 
 class AssociativeCache : public module
@@ -51,7 +37,7 @@ class AssociativeCache : public module
 	WritePolicy write_policy;		// cache write policy
 	AllocationPolicy alloc_policy; 	// write miss allocation policy
 	ReplacementPolicy repl_policy;	// replacement policy (victim choice)
-	std::vector<DirectCache*> ways;		// direct caches
+	std::vector<CacheWritePolicies*> ways;		// direct caches
 	std::stack<AssCacheStatus> status; 	// stateful component
 	unsigned target_way;		// direct cache index where to write the missing block
 	bool is_vict_predet;		// victim predetermined by upper levels
@@ -63,10 +49,10 @@ class AssociativeCache : public module
 	void cache_miss_routine(addr_t addr);
 	void handle_msg_read_prev(cache_message *cm);
 	void handle_msg_read_next(cache_message *cm);
-	void handle_msg_read_inner(dir_cache_message *cm, unsigned way_idx);
+	void handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx);
 	void handle_msg_write_prev(cache_message *cm);
 	void handle_msg_write_next(cache_message *cm);
-	void handle_msg_write_inner(dir_cache_message *cm, unsigned way_idx);
+	void handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx);
 	
 	
 public:

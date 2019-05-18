@@ -17,7 +17,7 @@ Constructor of the class
 @param hp			miss policy to be followed by the module
 @param mp			hit policy to be followed by the module
 */
-CacheWritePolicies::CacheWritePolicies(string name, int priority, uint16_t cache_size, uint16_t line_size, HIT_POLICY hp, MISS_POLICY mp) : Cache(line_size*MEM_LINE/2, cache_size*MEM_LINE/2), module(name, priority) {
+CacheWritePolicies::CacheWritePolicies(string name, int priority, uint16_t cache_size, uint16_t line_size, WritePolicy hp, AllocationPolicy mp) : Cache(line_size*MEM_LINE/2, cache_size*MEM_LINE/2), module(name, priority) {
 	hit_policy = hp;
 	miss_policy = mp;
 }
@@ -309,9 +309,9 @@ CWP_to_SAC* CacheWritePolicies::WP_write_with_policies(SAC_to_CWP* request_struc
 	vector<uint16_t> data_as_vector(request_struct->data, request_struct->data + 1);
 	
 	if(hit) {
-		if(hit_policy == WRITE_BACK)
+		if(hit_policy == WritePolicy::WRITE_BACK)
 			response_struct->wr = NO_PROPAGATE;
-		else if(hit_policy == WRITE_THROUGH)
+		else if(hit_policy == WritePolicy::WRITE_THROUGH)
 			response_struct->wr = PROPAGATE;
 		
 		response_struct->address = request_struct->address;
@@ -327,9 +327,9 @@ CWP_to_SAC* CacheWritePolicies::WP_write_with_policies(SAC_to_CWP* request_struc
 			cout << "Cache write policies: cache module returned bad dimension error" << endl;	
 	}
 	else { 	//MISS
-		if(miss_policy == WRITE_ALLOCATE)
+		if(miss_policy == AllocationPolicy::WRITE_ALLOCATE)
 			response_struct->wr = LOAD_RECALL;	
-		else if(miss_policy == WRITE_NO_ALLOCATE)
+		else if(miss_policy == AllocationPolicy::WRITE_AROUND)
 			response_struct->wr = CHECK_NEXT;
 		
 		bool data_valid = check_used(request_struct->address);

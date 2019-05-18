@@ -98,7 +98,7 @@ void AssociativeCache::handle_msg_read_prev(cache_message *cm)
 	
 	for (auto &dc : ways) {
 		/* TODO: Specify size of read request (depending on is_size_word) */
-		dir_cache_message *read_dcache = new dir_cache_message(LOAD, cm->target.addr);
+		SAC_to_CWP *read_dcache = new SAC_to_CWP{LOAD, cm->target.addr, nullptr};
 		message *m = craft_msg(prev_name, read_dcache);
 		sendWithDelay(m, 0);
 	}
@@ -124,7 +124,7 @@ void AssociativeCache::handle_msg_read_next(cache_message *cm)
 
 
 /* Routine to follow when receiving a 'read' message from a nested direct cache */
-void AssociativeCache::handle_msg_read_inner(dir_cache_message *cm, unsigned way_idx)
+void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
 	bool hit;
 	/* TODO: store the content of the message (for future use) */
@@ -134,7 +134,7 @@ void AssociativeCache::handle_msg_read_inner(dir_cache_message *cm, unsigned way
 		/* TODO: craft response message for previous level */
 		/* TODO: send it */
 	} else {
-		cache_miss_routine(cm->addr);
+		cache_miss_routine(cm->address);
 	}
 }
 
@@ -176,7 +176,7 @@ void AssociativeCache::handle_msg_write_next(cache_message *cm)
 
 
 /* Routine to follow when receiving a 'write' message from a nested direct cache */
-void AssociativeCache::handle_msg_write_inner(dir_cache_message *cm, unsigned way_idx)
+void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
 	/* TODO ... */
 }
@@ -184,9 +184,8 @@ void AssociativeCache::handle_msg_write_inner(dir_cache_message *cm, unsigned wa
 
 AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, string next_name,
 			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
-			WritePolicy write_policy, AllocationPolicy alloc_policy, 
-			ReplacementPolicy repl_policy, int priority)
-	: module(name, priority),
+			WritePolicy wp, AllocationPolicy ap, ReplacementPolicy rp, int prio)
+	: module(name, prio),
 	  prev_name(prev_name),
 	  next_name(next_name),
 	  n_ways(n_ways),
@@ -195,11 +194,16 @@ AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, s
 	  mem_unit_size(mem_unit_size),
 	  write_policy(write_policy),
 	  alloc_policy(alloc_policy),
-	  repl_policy(repl_policy)
+	  repl_policy(rp)
 {
 	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG
 	for (unsigned i = 0; i < n_ways; ++i) {
-		DirectCache *dcache = new DirectCache(name + "_" + std::to_string(i));
+		string dcache_name = name + "_" + std::to_string(i);
+		uint16_t dcache_size = cache_size / n_ways;
+		uint16_t dcache_block_size = block_size;
+		
+		CacheWritePolicies *dcache = new CacheWritePolicies(dcache_name, 0, dcache_size,
+															dcache_block_size, wp, ap);
 		ways.push_back(dcache);
 		sys.addModule(dcache);
 	}
@@ -242,15 +246,32 @@ void AssociativeCache::onNotify(message* m)
 	} else if (getName().compare(0, getName().size(), sender, 0, getName().size()) == 0) {
 		// inner direct cache
 		unsigned way_idx = std::stoi(sender.substr(getName().size() + 1));
-		dir_cache_message *cm = (dir_cache_message *)m->magic_struct;
+		CWP_to_SAC *cm = (CWP_to_SAC *)m->magic_struct;
 		
-		switch (cm->op) {
+		switch (cm->wr) {
+			case NOT_NEEDED:
+
+				break;
+			case PROPAGATE:
+				
+				break;
+			case NO_PROPAGATE:
+
+				break;
+			case LOAD_RECALL:
+			
+				break;
+			case CHECK_NEXT:
+			
+				break;
+/*	outdated
 			case LOAD:
 				handle_msg_read_inner(cm, way_idx);
 				break;
 			case STORE:
 				handle_msg_write_inner(cm, way_idx);
 				break;
+*/ 
 		}
 	} else {
 		std::cerr << "Error: can't recognize message sender" << std::endl;
