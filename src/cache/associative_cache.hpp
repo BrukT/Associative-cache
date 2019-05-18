@@ -21,27 +21,37 @@ class AssociativeCache : public module
 		READ_DOWN,
 		WRITE_UP,
 		WRITE_DOWN,
-		READ_WORD_IN,
-		READ_BLOCK_IN,
+		READ_IN,
 		WRITE_WORD_IN,
 		WRITE_BLOCK_IN,
 		MISS
 	};
 	
+	/* Naming */
 	string prev_name; 		// previous entity in the memory hierarchy (closer to cpu)
 	string next_name; 		// next entity in the memory hierarchy (farther from cpu)
+	/* Dimensions */
 	unsigned n_ways;		// number of associative ways
 	unsigned cache_size; 	// [byte] total size of the cache
 	unsigned block_size; 	// [byte] size of a block
 	unsigned mem_unit_size; // [byte] size of data to read
+	/* Policies */
 	WritePolicy write_policy;		// cache write policy
 	AllocationPolicy alloc_policy; 	// write miss allocation policy
 	ReplacementPolicy repl_policy;	// replacement policy (victim choice)
-	std::vector<CacheWritePolicies*> ways;		// direct caches
+	/* Objects */
+	std::vector<CacheWritePolicies*> ways;	// direct caches
+	/* Global state */
 	std::stack<AssCacheStatus> status; 	// stateful component
+	/* Replacement state */
 	unsigned target_way;		// direct cache index where to write the missing block
 	bool is_vict_predet;		// victim predetermined by upper levels
 	addr_t vict_predet_addr; 	// address of victim when predetermined
+	/* Direct Cache operation state */
+	unsigned n_dcache_replies;	// current number of replies received by direct cache
+	bool op_hit;				// hit/miss in any direct cache for current operation
+	unsigned op_hit_way;		// way index where hit was generated
+	word_t *op_data; 			// data buffer for hit response of current operation
 	
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(string dest, void *content);

@@ -1,4 +1,6 @@
 #include <cassert>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 
@@ -87,8 +89,6 @@ void AssociativeCache::cache_miss_routine(addr_t addr)
 /* Routine to follow when receiving a 'read' message from the upper level */
 void AssociativeCache::handle_msg_read_prev(cache_message *cm)
 {
-	bool is_size_word = (mem_unit_size == sizeof(word_t));
-	
 	status.push(AssCacheStatus::READ_UP);
 	
 	// Save the victim address if predetermined by upper level
@@ -96,17 +96,20 @@ void AssociativeCache::handle_msg_read_prev(cache_message *cm)
 	if (is_vict_predet)
 		vict_predet_addr = cm->victim.addr;
 	
+	// Reset state for inner cache operation
+	n_dcache_replies = 0;
+	op_hit = false;
+	word_t *op_data = nullptr;
+	
+	// Send request to each direct cache
 	for (auto &dc : ways) {
-		/* TODO: Specify size of read request (depending on is_size_word) */
+		// Ask to read the whole block from cache (independently from needed size)
 		SAC_to_CWP *read_dcache = new SAC_to_CWP{LOAD, cm->target.addr, nullptr};
 		message *m = craft_msg(prev_name, read_dcache);
 		sendWithDelay(m, 0);
 	}
 	
-	if (is_size_word)
-		status.push(AssCacheStatus::READ_WORD_IN);
-	else
-		status.push(AssCacheStatus::READ_BLOCK_IN);
+	status.push(AssCacheStatus::READ_IN);
 }
 
 
@@ -126,14 +129,43 @@ void AssociativeCache::handle_msg_read_next(cache_message *cm)
 /* Routine to follow when receiving a 'read' message from a nested direct cache */
 void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
-	bool hit;
-	/* TODO: store the content of the message (for future use) */
-	/* TODO: if this is not the last reply (i.e. we expect more responses), return */
-	/* TODO: compute hit/miss on the basis of ALL the received replies */
-	if (hit) {
-		/* TODO: craft response message for previous level */
-		/* TODO: send it */
-	} else {
+	// Preprocess the response
+	++n_dcache_replies;
+	if (cm->hit_flag) {
+		op_hit = true;
+		op_data = cm->data;
+		op_hit_way = way_idx;
+	}
+	
+	// If this is not the last reply (i.e. we expect more responses), return
+	if (n_dcache_replies < n_ways)
+		return;
+	
+	// Update global state
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::READ_IN);
+	
+	// Size of the data to be actually read
+	bool is_size_word = (mem_unit_size == sizeof(word_t));
+	
+	if (op_hit) {	// read hit
+		void *response_data = malloc(mem_unit_size);
+		
+		if (is_size_word) {
+			unsigned offset_size = (unsigned)std::round(std::log2(block_size));
+			unsigned offset = cm->address & ((1 << offset_size)-1);
+			memcpy(response_data, (void *)(op_data + offset/2), mem_unit_size);
+		} else {
+			memcpy(response_data, (void *)op_data, mem_unit_size);
+		}
+		// Send back requested data to previous level
+		cache_message *read_response = craft_ass_cache_msg(
+				OP_READ, mem_unit{cm->address, (addr_t *)response_data}, mem_unit{0, nullptr}
+		);
+		message *m = craft_msg(prev_name, read_response);
+		sendWithDelay(m, 0);
+	} else {		// read miss
 		cache_miss_routine(cm->address);
 	}
 }
@@ -145,14 +177,20 @@ void AssociativeCache::handle_msg_write_prev(cache_message *cm)
 	status.push(AssCacheStatus::WRITE_UP);
 	
 	// Save the victim address if predetermined by upper level
-	is_vict_predet = (cm->victim.data != nullptr);
+	is_vict_predet = (cm->victim.data != nullptr);	/* TODO: protocol has changed, this should be a constructor parameter */
 	if (is_vict_predet)
 		vict_predet_addr = cm->victim.addr;
 	
+	// Reset state for inner cache operation
+	n_dcache_replies = 0;
+	op_hit = false;
+	/* Add some other status info to handle all the possible response cases */
+	
+	// Try to write to all direct caches
 	for (auto &dc : ways) {
-		/* TODO: craft write request to direct cache
-		 * TODO: dispatch message 
-		 * */
+		SAC_to_CWP *write_dcache = new SAC_to_CWP{WRITE_WITH_POLICIES, cm->target.addr, cm->target.data};
+		message *m = craft_msg(prev_name, write_dcache);
+		sendWithDelay(m, 0);
 	}
 	status.push(AssCacheStatus::WRITE_WORD_IN);
 }
