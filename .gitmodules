@@ -1,0 +1,3 @@
+[submodule "src/write_policy"]
+	path = src/write_policy
+	url = https://github.com/Scimmiaparlante/CA_project-cache_write_policies
