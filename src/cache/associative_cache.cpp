@@ -217,6 +217,41 @@ void AssociativeCache::handle_msg_write_lower(cache_message *cm)
 void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
 	/* TODO ... */
+	switch (cm->wr) {
+	case W_HIT_PROPAGATE:					// write hit with propagation needed
+		/* TODO */
+		break;
+	case W_HIT_NO_PROP:						// write hit with no propagation needed
+		/* TODO */
+		break;
+	case W_MISS_ALLOCATE:					// write miss with allocate policy
+		/* TODO: must fetch, copy then repeat write */
+		break;
+	case W_MISS_NO_ALLOC:					// write miss with non-allocate policy
+		/* TODO */
+		break;
+	}
+}
+
+
+/* Routine to follow after a 'store' (overwrite) to nested direct cache has finished */
+void handle_msg_overwrite_inner(CWP_to_SAC *cm, unsigned way_idx)
+{
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::WRITE_BLOCK_IN);
+	
+	// Resume pending action
+	acs = status.top();
+	status.pop();
+	switch (acs) {
+	case AssCacheStatus::READ_UP:	// pending read
+		/* TODO: Complete the read that previously missed (note: instead of reading again, better recycle data from miss routine) */
+		break;
+	case AssCacheStatus::WRITE_UP: 	// pending write
+		/* TODO: Retry the same write that previously missed */
+		break;
+	}
 }
 
 
@@ -263,53 +298,45 @@ void AssociativeCache::onNotify(message* m)
 		// previous level
 		cache_message *cm = (cache_message *)m->magic_struct;
 		switch (cm->op_type) {
-			case OP_READ:
-				handle_msg_read_upper(cm);
-				break;
-			case OP_WRITE:
-				handle_msg_write_upper(cm);
-				break;
+		case OP_READ:
+			handle_msg_read_upper(cm);
+			break;
+		case OP_WRITE:
+			handle_msg_write_upper(cm);
+			break;
 		}
 	} else if (lower_name.compare(sender) == 0) {
 		// next level
 		cache_message *cm = (cache_message *)m->magic_struct;
 		switch (cm->op_type) {
-			case OP_READ:
-				handle_msg_read_lower(cm);
-				break;
-			case OP_WRITE:
-				handle_msg_write_lower(cm);
-				break;
+		case OP_READ:
+			handle_msg_read_lower(cm);
+			break;
+		case OP_WRITE:
+			handle_msg_write_lower(cm);
+			break;
 		}
 	} else if (getName().compare(0, getName().size(), sender, 0, getName().size()) == 0) {
 		// inner direct cache
 		unsigned way_idx = std::stoi(sender.substr(getName().size() + 1));
 		CWP_to_SAC *cm = (CWP_to_SAC *)m->magic_struct;
 		
-		switch (cm->wr) {
-			case NOT_NEEDED:
-
-				break;
-			case PROPAGATE:
-				
-				break;
-			case NO_PROPAGATE:
-
-				break;
-			case LOAD_RECALL:
-			
-				break;
-			case CHECK_NEXT:
-			
-				break;
-/*	outdated
-			case LOAD:
-				handle_msg_read_inner(cm, way_idx);
-				break;
-			case STORE:
-				handle_msg_write_inner(cm, way_idx);
-				break;
-*/ 
+		AssCacheStatus acs = status.top();
+		switch (acs) {
+		case AssCacheStatus::READ_IN:				// read from direct cache
+			assert(cm->wr == NOT_NEEDED);
+			handle_msg_read_inner(cm, way_idx);
+			break;
+		case AssCacheStatus::WRITE_BLOCK_IN:		// store (overwrite) to direct cache
+			assert(cm->wr == NOT_NEEDED);
+			handle_msg_overwrite_inner(way_idx);
+			break;
+		case AssCacheStatus::WRITE_WORD_IN:			// write (using policies) to direct cache
+			handle_msg_write_inner(cm, way_idx);
+			break;
+		default:
+			std::cerr << "Error: direct cache response received in wrong state" << std::endl;
+			break;
 		}
 	} else {
 		std::cerr << "Error: can't recognize message sender" << std::endl;

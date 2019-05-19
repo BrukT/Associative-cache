@@ -54,6 +54,11 @@ enum DirCacheOp {
 			
 enum WriteResponse {NOT_NEEDED, PROPAGATE, NO_PROPAGATE, LOAD_RECALL, CHECK_NEXT};
 
+#define W_HIT_PROPAGATE 	PROPAGATE
+#define W_HIT_NO_PROP 		NO_PROPAGATE
+#define W_MISS_ALLOCATE 	LOAD_RECALL
+#define W_MISS_NO_ALLOC 	CHECK_NEXT
+
 /* request structure. possible combinations:
 		-SET_DIRTY: set the address of the cache line to set dirty
 		-CHECK_DIRTY: set the address of the cache line whose dirty bit must be checked

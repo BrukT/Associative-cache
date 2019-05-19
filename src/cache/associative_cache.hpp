@@ -62,6 +62,7 @@ class AssociativeCache : public module
 	void handle_msg_write_upper(cache_message *cm);
 	void handle_msg_write_lower(cache_message *cm);
 	void handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx);
+	void handle_msg_overwrite_inner(unsigned way_idx);
 	
 	
 public:
