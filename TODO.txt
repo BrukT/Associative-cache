@@ -1,0 +1,5 @@
+- update documentation
+- update the diagram
+- add tests
+- integrate replacemnt policies 
+- find and remove memory leaks

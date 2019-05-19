@@ -11,6 +11,7 @@ enum class AllocationPolicy {
 };
 
 enum class ReplacementPolicy {
+	PREDETERMINED,
 	PLRU,
 	LFU
 };
