@@ -52,7 +52,7 @@ bool AssociativeCache::determine_way(unsigned& way, mem_unit& victim)
 	}
 	
 	// At this point, no cache is free, hence we must pick a victim
-	if (is_vict_predet) {
+	if (this->repl_policy == ReplacementPolicy::PREDETERMINED) {
 		/* TODO: (predetermined victim) find the way corresponding to vict_predet_addr */
 	} else {
 		/* TODO: use the replacement policy to determine the way */
@@ -81,19 +81,18 @@ void AssociativeCache::cache_miss_routine(addr_t addr)
 		read_below = craft_ass_cache_msg(OP_READ, (mem_unit){.addr=addr, .data=nullptr}, 
 				(mem_unit){.addr=0, .data=nullptr});
 	}
-	message *m = craft_msg(prev_name, read_below);
+	message *m = craft_msg(upper_name, read_below);
 	sendWithDelay(m, 0);
 }
 
 
 /* Routine to follow when receiving a 'read' message from the upper level */
-void AssociativeCache::handle_msg_read_prev(cache_message *cm)
+void AssociativeCache::handle_msg_read_upper(cache_message *cm)
 {
 	status.push(AssCacheStatus::READ_UP);
 	
 	// Save the victim address if predetermined by upper level
-	is_vict_predet = (cm->victim.data != nullptr);
-	if (is_vict_predet)
+	if (this->repl_policy == ReplacementPolicy::PREDETERMINED)
 		vict_predet_addr = cm->victim.addr;
 	
 	// Reset state for inner cache operation
@@ -105,7 +104,7 @@ void AssociativeCache::handle_msg_read_prev(cache_message *cm)
 	for (auto &dc : ways) {
 		// Ask to read the whole block from cache (independently from needed size)
 		SAC_to_CWP *read_dcache = new SAC_to_CWP{LOAD, cm->target.addr, nullptr};
-		message *m = craft_msg(prev_name, read_dcache);
+		message *m = craft_msg(upper_name, read_dcache);
 		sendWithDelay(m, 0);
 	}
 	
@@ -114,15 +113,17 @@ void AssociativeCache::handle_msg_read_prev(cache_message *cm)
 
 
 /* Routine to follow when receiving a 'read' message from the lower level */
-void AssociativeCache::handle_msg_read_next(cache_message *cm) 
+void AssociativeCache::handle_msg_read_lower(cache_message *cm) 
 {	
 	AssCacheStatus acs = status.top();
 	status.pop();
 	assert(acs == AssCacheStatus::MISS);
 	
-	/* TODO: replace the previously chosen victim with the just received block */
+	// Write the received block in the previously chosen location (possibly overwriting victim)
+	SAC_to_CWP *overwrite = new SAC_to_CWP{STORE, cm->target.addr, cm->target.data};
+	message *m = craft_msg(getName() + "_" + std::to_string(this->target_way), overwrite);
+	sendWithDelay(m, 0);
 	status.push(AssCacheStatus::WRITE_BLOCK_IN);
-	/* TODO: send request */
 }
 
 
@@ -151,7 +152,7 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 	
 	if (op_hit) {	// read hit
 		void *response_data = malloc(mem_unit_size);
-		
+
 		if (is_size_word) {
 			unsigned offset_size = (unsigned)std::round(std::log2(block_size));
 			unsigned offset = cm->address & ((1 << offset_size)-1);
@@ -163,7 +164,7 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 		cache_message *read_response = craft_ass_cache_msg(
 				OP_READ, mem_unit{cm->address, (addr_t *)response_data}, mem_unit{0, nullptr}
 		);
-		message *m = craft_msg(prev_name, read_response);
+		message *m = craft_msg(upper_name, read_response);
 		sendWithDelay(m, 0);
 	} else {		// read miss
 		cache_miss_routine(cm->address);
@@ -172,13 +173,12 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 
 
 /* Routine to follow when receiving a 'write' message from the upper level */
-void AssociativeCache::handle_msg_write_prev(cache_message *cm)
+void AssociativeCache::handle_msg_write_upper(cache_message *cm)
 {
 	status.push(AssCacheStatus::WRITE_UP);
 	
 	// Save the victim address if predetermined by upper level
-	is_vict_predet = (cm->victim.data != nullptr);	/* TODO: protocol has changed, this should be a constructor parameter */
-	if (is_vict_predet)
+	if (this->repl_policy == ReplacementPolicy::PREDETERMINED)
 		vict_predet_addr = cm->victim.addr;
 	
 	// Reset state for inner cache operation
@@ -189,7 +189,7 @@ void AssociativeCache::handle_msg_write_prev(cache_message *cm)
 	// Try to write to all direct caches
 	for (auto &dc : ways) {
 		SAC_to_CWP *write_dcache = new SAC_to_CWP{WRITE_WITH_POLICIES, cm->target.addr, cm->target.data};
-		message *m = craft_msg(prev_name, write_dcache);
+		message *m = craft_msg(upper_name, write_dcache);
 		sendWithDelay(m, 0);
 	}
 	status.push(AssCacheStatus::WRITE_WORD_IN);
@@ -197,7 +197,7 @@ void AssociativeCache::handle_msg_write_prev(cache_message *cm)
 
 
 /* Routine to follow when receiving a 'write' message from the lower level */
-void AssociativeCache::handle_msg_write_next(cache_message *cm)
+void AssociativeCache::handle_msg_write_lower(cache_message *cm)
 {
 	AssCacheStatus acs = status.top();
 	status.pop();
@@ -205,7 +205,7 @@ void AssociativeCache::handle_msg_write_next(cache_message *cm)
 	
 	// Propagate ack message to previous level (same fields)
 	cache_message *ack = craft_ass_cache_msg(cm->op_type, cm->target, cm->victim);
-	message *m = craft_msg(prev_name, ack);
+	message *m = craft_msg(upper_name, ack);
 	sendWithDelay(m, 0);
 	
 	// Cleanup
@@ -220,12 +220,12 @@ void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 }
 
 
-AssociativeCache::AssociativeCache(System& sys, string name, string prev_name, string next_name,
+AssociativeCache::AssociativeCache(System& sys, string name, string upper_name, string lower_name,
 			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
 			WritePolicy wp, AllocationPolicy ap, ReplacementPolicy rp, int prio)
 	: module(name, prio),
-	  prev_name(prev_name),
-	  next_name(next_name),
+	  upper_name(upper_name),
+	  lower_name(lower_name),
 	  n_ways(n_ways),
 	  cache_size(cache_size),
 	  block_size(block_size),
@@ -259,26 +259,26 @@ void AssociativeCache::onNotify(message* m)
 	string sender = m->source;
 
 	// Demultiplex based on sender
-	if (prev_name.compare(sender) == 0) {
+	if (upper_name.compare(sender) == 0) {
 		// previous level
 		cache_message *cm = (cache_message *)m->magic_struct;
 		switch (cm->op_type) {
 			case OP_READ:
-				handle_msg_read_prev(cm);
+				handle_msg_read_upper(cm);
 				break;
 			case OP_WRITE:
-				handle_msg_write_prev(cm);
+				handle_msg_write_upper(cm);
 				break;
 		}
-	} else if (next_name.compare(sender) == 0) {
+	} else if (lower_name.compare(sender) == 0) {
 		// next level
 		cache_message *cm = (cache_message *)m->magic_struct;
 		switch (cm->op_type) {
 			case OP_READ:
-				handle_msg_read_next(cm);
+				handle_msg_read_lower(cm);
 				break;
 			case OP_WRITE:
-				handle_msg_write_next(cm);
+				handle_msg_write_lower(cm);
 				break;
 		}
 	} else if (getName().compare(0, getName().size(), sender, 0, getName().size()) == 0) {

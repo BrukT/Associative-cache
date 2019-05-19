@@ -28,8 +28,8 @@ class AssociativeCache : public module
 	};
 	
 	/* Naming */
-	string prev_name; 		// previous entity in the memory hierarchy (closer to cpu)
-	string next_name; 		// next entity in the memory hierarchy (farther from cpu)
+	string upper_name; 		// previous entity in the memory hierarchy (closer to cpu)
+	string lower_name; 		// next entity in the memory hierarchy (farther from cpu)
 	/* Dimensions */
 	unsigned n_ways;		// number of associative ways
 	unsigned cache_size; 	// [byte] total size of the cache
@@ -45,7 +45,6 @@ class AssociativeCache : public module
 	std::stack<AssCacheStatus> status; 	// stateful component
 	/* Replacement state */
 	unsigned target_way;		// direct cache index where to write the missing block
-	bool is_vict_predet;		// victim predetermined by upper levels
 	addr_t vict_predet_addr; 	// address of victim when predetermined
 	/* Direct Cache operation state */
 	unsigned n_dcache_replies;	// current number of replies received by direct cache
@@ -57,16 +56,16 @@ class AssociativeCache : public module
 	message * craft_msg(string dest, void *content);
 	bool determine_way(unsigned& way, mem_unit& victim);
 	void cache_miss_routine(addr_t addr);
-	void handle_msg_read_prev(cache_message *cm);
-	void handle_msg_read_next(cache_message *cm);
+	void handle_msg_read_upper(cache_message *cm);
+	void handle_msg_read_lower(cache_message *cm);
 	void handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx);
-	void handle_msg_write_prev(cache_message *cm);
-	void handle_msg_write_next(cache_message *cm);
+	void handle_msg_write_upper(cache_message *cm);
+	void handle_msg_write_lower(cache_message *cm);
 	void handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx);
 	
 	
 public:
-	AssociativeCache(System& sys, string name, string prev_name, string next_name,
+	AssociativeCache(System& sys, string name, string upper_name, string lower_name,
 			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
 			WritePolicy write_policy, AllocationPolicy alloc_policy,
 			ReplacementPolicy repl_policy, int priority=0);
