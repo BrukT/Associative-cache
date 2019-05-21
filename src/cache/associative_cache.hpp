@@ -43,19 +43,25 @@ class AssociativeCache : public module
 	std::vector<CacheWritePolicies*> ways;	// direct caches
 	/* Global state */
 	std::stack<AssCacheStatus> status; 	// stateful component
-	/* Replacement state */
+	/* State for replacement */
 	unsigned target_way;		// direct cache index where to write the missing block
 	addr_t vict_predet_addr; 	// address of victim when predetermined
-	/* Direct Cache operation state */
+	/* Inner operation state */
+	addr_t target_addr;			// address of the operation in progress
+	word_t *fresh_data;			// fresh data to be written as requested by upper level
+	word_t *fetched_data;		// data fetched from dcache or below
+	bool free_way_available;	// true if any way is free for target index
+	unsigned free_way;			// index of the free way for target index
 	unsigned n_dcache_replies;	// current number of replies received by direct cache
 	bool op_hit;				// hit/miss in any direct cache for current operation
-	unsigned op_hit_way;		// way index where hit was generated
-	word_t *op_data; 			// data buffer for hit response of current operation
+	bool propagate;				// propagate write request (issued by inner caches)
+	bool allocate; 				// allocate on write miss (issued by inner caches)
 	
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(string dest, void *content);
 	bool determine_way(unsigned& way, mem_unit& victim);
 	void cache_miss_routine(addr_t addr);
+	void read_complete();
 	void handle_msg_read_upper(cache_message *cm);
 	void handle_msg_read_lower(cache_message *cm);
 	void handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx);
