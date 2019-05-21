@@ -41,19 +41,14 @@ message * AssociativeCache::craft_msg(string dest, void *content)
  */
 bool AssociativeCache::determine_way(unsigned& way, mem_unit& victim)
 {
-	// Scan through the caches looking for a free slot, if any
-	bool free = false;
-	for (unsigned i = 0; i < n_ways; ++i) {
-		/* TODO Check if that cache is free */
-		if (free) {
-			way = i;
-			return false;
-		}
+	if (free_way_available) {
+		way = free_way;
+		return false;
 	}
 	
 	// At this point, no cache is free, hence we must pick a victim
 	if (this->repl_policy == ReplacementPolicy::PREDETERMINED) {
-		/* TODO: (predetermined victim) find the way corresponding to vict_predet_addr */
+		/* TODO: (predetermined victim) find the way corresponding to vict_predet_addr (must compare returned addr of miss responses) */
 	} else {
 		/* TODO: use the replacement policy to determine the way */
 	}
@@ -67,7 +62,7 @@ void AssociativeCache::cache_miss_routine(addr_t addr)
 	bool is_replacement;
 	mem_unit victim;
 	
-	status.push(AssCacheStatus::READ_UP);
+	status.push(AssCacheStatus::MISS);
 	
 	is_replacement = determine_way(this->target_way, victim);
 	
@@ -95,10 +90,13 @@ void AssociativeCache::handle_msg_read_upper(cache_message *cm)
 	if (this->repl_policy == ReplacementPolicy::PREDETERMINED)
 		vict_predet_addr = cm->victim.addr;
 	
+	// Save the target address
+	target_addr = cm->target.addr;
 	// Reset state for inner cache operation
-	n_dcache_replies = 0;
+	fetched_data = nullptr;
 	op_hit = false;
-	word_t *op_data = nullptr;
+	free_way_available = false;
+	n_dcache_replies = 0;
 	
 	// Send request to each direct cache
 	for (auto &dc : ways) {
@@ -119,6 +117,9 @@ void AssociativeCache::handle_msg_read_lower(cache_message *cm)
 	status.pop();
 	assert(acs == AssCacheStatus::MISS);
 	
+	// Keep the data pointer to reply (later) to the original request (if read)
+	fetched_data = cm->target.data;
+	
 	// Write the received block in the previously chosen location (possibly overwriting victim)
 	SAC_to_CWP *overwrite = new SAC_to_CWP{STORE, cm->target.addr, cm->target.data};
 	message *m = craft_msg(getName() + "_" + std::to_string(this->target_way), overwrite);
@@ -127,15 +128,47 @@ void AssociativeCache::handle_msg_read_lower(cache_message *cm)
 }
 
 
+/* After the requested data has been fetched, reply to the read request */
+void AssociativeCache::read_complete()
+{
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::READ_UP);
+	
+	// Size of the data to be actually read
+	bool is_size_word = (mem_unit_size == sizeof(word_t));
+	
+	void *response_data = malloc(mem_unit_size);
+
+	if (is_size_word) {
+		unsigned offset_size = (unsigned)std::round(std::log2(block_size));
+		unsigned offset = target_addr & ((1 << offset_size)-1);
+		memcpy(response_data, (void *)(fetched_data + offset/2), mem_unit_size);
+	} else {
+		memcpy(response_data, (void *)fetched_data, mem_unit_size);
+	}
+	// Send back requested data to previous level
+	cache_message *read_response = craft_ass_cache_msg(
+			OP_READ, mem_unit{target_addr, (addr_t *)response_data}, mem_unit{0, nullptr}
+	);
+	message *m = craft_msg(upper_name, read_response);
+	sendWithDelay(m, 0);
+}
+
+
 /* Routine to follow when receiving a 'read' message from a nested direct cache */
 void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
 	// Preprocess the response
 	++n_dcache_replies;
-	if (cm->hit_flag) {
+	if (cm->hit_flag) {		// hit
 		op_hit = true;
-		op_data = cm->data;
-		op_hit_way = way_idx;
+		fetched_data = cm->data;
+	} else {				// miss
+		if (cm->address == target_addr)	{	// miss + preserve addr means that location is free
+			free_way_available = true;
+			free_way = way_idx;
+		}
 	}
 	
 	// If this is not the last reply (i.e. we expect more responses), return
@@ -151,21 +184,7 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 	bool is_size_word = (mem_unit_size == sizeof(word_t));
 	
 	if (op_hit) {	// read hit
-		void *response_data = malloc(mem_unit_size);
-
-		if (is_size_word) {
-			unsigned offset_size = (unsigned)std::round(std::log2(block_size));
-			unsigned offset = cm->address & ((1 << offset_size)-1);
-			memcpy(response_data, (void *)(op_data + offset/2), mem_unit_size);
-		} else {
-			memcpy(response_data, (void *)op_data, mem_unit_size);
-		}
-		// Send back requested data to previous level
-		cache_message *read_response = craft_ass_cache_msg(
-				OP_READ, mem_unit{cm->address, (addr_t *)response_data}, mem_unit{0, nullptr}
-		);
-		message *m = craft_msg(upper_name, read_response);
-		sendWithDelay(m, 0);
+		read_complete();
 	} else {		// read miss
 		cache_miss_routine(cm->address);
 	}
@@ -176,15 +195,19 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 void AssociativeCache::handle_msg_write_upper(cache_message *cm)
 {
 	status.push(AssCacheStatus::WRITE_UP);
-	
+
 	// Save the victim address if predetermined by upper level
 	if (this->repl_policy == ReplacementPolicy::PREDETERMINED)
 		vict_predet_addr = cm->victim.addr;
 	
+	// Save the target address and fresh data
+	target_addr = cm->target.addr;
+	fresh_data = cm->target.data;
 	// Reset state for inner cache operation
+	free_way_available = false;
 	n_dcache_replies = 0;
 	op_hit = false;
-	/* Add some other status info to handle all the possible response cases */
+	/* TODO: add other state if necessary (probably yes because write responses can be many) */
 	
 	// Try to write to all direct caches
 	for (auto &dc : ways) {
@@ -216,26 +239,66 @@ void AssociativeCache::handle_msg_write_lower(cache_message *cm)
 /* Routine to follow when receiving a 'write' message from a nested direct cache */
 void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
-	/* TODO ... */
-	switch (cm->wr) {
-	case W_HIT_PROPAGATE:					// write hit with propagation needed
-		/* TODO */
-		break;
-	case W_HIT_NO_PROP:						// write hit with no propagation needed
-		/* TODO */
-		break;
-	case W_MISS_ALLOCATE:					// write miss with allocate policy
-		/* TODO: must fetch, copy then repeat write */
-		break;
-	case W_MISS_NO_ALLOC:					// write miss with non-allocate policy
-		/* TODO */
-		break;
+	// Preprocess the response
+	++n_dcache_replies;
+	if (cm->hit_flag) {		// hit
+		op_hit = true;
+		
+		switch (cm->wr) {
+		case W_HIT_PROPAGATE:
+			propagate = true;
+			break;
+		case W_HIT_NO_PROP:
+			propagate = false;
+			break;
+		default:
+			std::cerr << "Error: wrong response type for write hit" << std::endl;
+		}
+	} else {				// miss
+		switch (cm->wr) {
+		case W_MISS_ALLOCATE:
+			allocate = true;
+			if (cm->address == target_addr)	{	// miss + preserve addr means that location is free
+				free_way_available = true;
+				free_way = way_idx;
+			}
+			break;
+		case W_MISS_NO_ALLOC:
+			allocate = false;
+			break;
+		default:
+			std::cerr << "Error: wrong response type for write miss" << std::endl;
+		}
+	}
+	
+	// If this is not the last reply (i.e. we expect more responses), return
+	if (n_dcache_replies < n_ways)
+		return;
+	
+	// Update global state
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::WRITE_WORD_IN);
+	
+	if (op_hit) {
+		if (propagate) {
+			/* TODO: propagate write to lower level */
+		} else {
+			/* TODO: pop status writeUP */
+			/* TODO: generate ACK */
+		}
+	} else {
+		if (allocate) {
+			cache_miss_routine(target_addr);
+		} else {
+			/* TODO: simply forward the write request to next level */
+		}
 	}
 }
 
 
 /* Routine to follow after a 'store' (overwrite) to nested direct cache has finished */
-void handle_msg_overwrite_inner(CWP_to_SAC *cm, unsigned way_idx)
+void AssociativeCache::handle_msg_overwrite_inner(unsigned way_idx)
 {
 	AssCacheStatus acs = status.top();
 	status.pop();
@@ -243,13 +306,18 @@ void handle_msg_overwrite_inner(CWP_to_SAC *cm, unsigned way_idx)
 	
 	// Resume pending action
 	acs = status.top();
-	status.pop();
 	switch (acs) {
 	case AssCacheStatus::READ_UP:	// pending read
-		/* TODO: Complete the read that previously missed (note: instead of reading again, better recycle data from miss routine) */
+		// Complete the read that previously missed
+		read_complete();
 		break;
 	case AssCacheStatus::WRITE_UP: 	// pending write
-		/* TODO: Retry the same write that previously missed */
+		// Retry the same write that previously missed
+		status.pop();	// WRITE_UP, will be re-pushed by handle_msg_write_upper
+		cache_message *repeat_write = craft_ass_cache_msg(OP_WRITE,  // build clone of original request
+				(mem_unit){.addr=target_addr, .data=fresh_data}, 	// same address/data of before
+				(mem_unit){.addr=0, .data=nullptr}); 				// won't miss this time
+		handle_msg_write_upper(repeat_write);
 		break;
 	}
 }
