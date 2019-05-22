@@ -12,6 +12,7 @@
 #include "messages.hpp"
 #include "mock_write_policy.hpp"
 #include "policies.hpp"
+#include "ReplacementHandler.h"
 
 
 class AssociativeCache : public module
@@ -44,6 +45,7 @@ class AssociativeCache : public module
 	/* Global state */
 	std::stack<AssCacheStatus> status; 	// stateful component
 	/* State for replacement */
+	ReplacementHandler* rh;		// replacement policy handler
 	unsigned target_way;		// direct cache index where to write the missing block
 	addr_t vict_predet_addr; 	// address of victim when predetermined
 	/* Inner operation state */

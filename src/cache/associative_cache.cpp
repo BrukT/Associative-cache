@@ -50,7 +50,8 @@ bool AssociativeCache::determine_way(unsigned& way, mem_unit& victim)
 	if (this->repl_policy == ReplacementPolicy::PREDETERMINED) {
 		/* TODO: (predetermined victim) find the way corresponding to vict_predet_addr (must compare returned addr of miss responses) */
 	} else {
-		/* TODO: use the replacement policy to determine the way */
+		// Use the replacement handler to determine the way
+		way = rh->find_victim();
 	}
 	return true;
 }
@@ -354,9 +355,30 @@ AssociativeCache::AssociativeCache(System& sys, string name, string upper_name, 
 	  mem_unit_size(mem_unit_size),
 	  write_policy(write_policy),
 	  alloc_policy(alloc_policy),
-	  repl_policy(rp)
+	  repl_policy(rp),
+	  rh(nullptr)
 {
 	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG
+	
+	// Initialize replacement handler
+	unsigned offset_size = (unsigned)std::round(std::log2(block_size));
+	unsigned index_size = (unsigned)std::round(std::log2(cache_size/n_ways/block_size));
+	switch (rp) {
+	case ReplacementPolicy::PLRU:
+		rh = new ReplacementHandler(index_size, offset_size, n_ways, PLRU);
+		break;
+	case ReplacementPolicy::LFU:
+		rh = new ReplacementHandler(index_size, offset_size, n_ways, LFU);
+		break;
+	case ReplacementPolicy::RND:
+		rh = new ReplacementHandler(index_size, offset_size, n_ways, RND);
+		break;
+	case ReplacementPolicy::PREDETERMINED:
+		// nothing
+		break;
+	}
+	
+	// Allocate direct caches
 	for (unsigned i = 0; i < n_ways; ++i) {
 		string dcache_name = name + "_" + std::to_string(i);
 		uint16_t dcache_size = cache_size / n_ways;
