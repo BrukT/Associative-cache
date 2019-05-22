@@ -90,6 +90,8 @@ void AssociativeCache::handle_msg_read_upper(cache_message *cm)
 	if (this->repl_policy == ReplacementPolicy::PREDETERMINED)
 		vict_predet_addr = cm->victim.addr;
 	
+	/* TODO: what if the upper level had to replace, thus gave us the victim data too? (overwrite, then? propagate?) */
+	
 	// Save the target address
 	target_addr = cm->target.addr;
 	// Reset state for inner cache operation
@@ -239,6 +241,8 @@ void AssociativeCache::handle_msg_write_lower(cache_message *cm)
 /* Routine to follow when receiving a 'write' message from a nested direct cache */
 void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
+	message *m;
+	
 	// Preprocess the response
 	++n_dcache_replies;
 	if (cm->hit_flag) {		// hit
@@ -281,17 +285,32 @@ void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 	assert(acs == AssCacheStatus::WRITE_WORD_IN);
 	
 	if (op_hit) {
-		if (propagate) {
-			/* TODO: propagate write to lower level */
-		} else {
-			/* TODO: pop status writeUP */
-			/* TODO: generate ACK */
+		if (propagate) {	// hit w/ write propagate
+			// propagate write to lower level
+			cache_message *write_below = craft_ass_cache_msg(OP_WRITE, 
+					(mem_unit){.addr=target_addr, .data=fresh_data},
+					(mem_unit){.addr=0, .data=nullptr}); // In case of replacement, victim was already sent when fetching
+			m = craft_msg(upper_name, write_below);
+		} else {			// hit w/ write back
+			AssCacheStatus acs2 = status.top();
+			status.pop();
+			assert(acs2 == AssCacheStatus::WRITE_UP);
+			// Generate ack message for previous level
+			cache_message *ack = craft_ass_cache_msg(OP_WRITE,
+					(mem_unit){.addr=target_addr, .data=fresh_data},
+					(mem_unit){.addr=0, .data=nullptr});
+			m = craft_msg(upper_name, ack);
 		}
+		sendWithDelay(m, 0);
 	} else {
-		if (allocate) {
+		if (allocate) {		// miss w/ write allocate
 			cache_miss_routine(target_addr);
-		} else {
-			/* TODO: simply forward the write request to next level */
+		} else {			// miss w/ write around
+			// Simply forward the write request to next level
+			cache_message *write_below = craft_ass_cache_msg(OP_WRITE, 
+					(mem_unit){.addr=target_addr, .data=fresh_data},
+					(mem_unit){.addr=0, .data=nullptr}); // no replacement because write around
+			m = craft_msg(upper_name, write_below);
 		}
 	}
 }
