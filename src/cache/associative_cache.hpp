@@ -49,6 +49,8 @@ class AssociativeCache : public module
 	ReplacementHandler* rh;		// replacement policy handler
 	unsigned target_way;		// direct cache index where to write the missing block
 	addr_t vict_predet_addr; 	// address of victim when predetermined
+	word_t *vict_predet_data; 	// data of victim from previous level
+	unsigned vict_predet_way;	// index of way in which the predetermined victim is stored
 	/* Inner operation state */
 	addr_t target_addr;			// address of the operation in progress
 	word_t *fresh_data;			// fresh data to be written as requested by upper level
@@ -64,8 +66,10 @@ class AssociativeCache : public module
 	message * craft_msg(string dest, void *content);
 	bool determine_way(mem_unit& victim);
 	void cache_miss_routine(addr_t addr);
+	void deposit_victim();
 	void read_begin();
 	void read_complete();
+	void handle_read_hit_or_miss();
 	void handle_msg_read_upper(cache_message *cm);
 	void handle_msg_read_lower(cache_message *cm);
 	void handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx);

@@ -85,6 +85,17 @@ void AssociativeCache::cache_miss_routine(addr_t addr)
 }
 
 
+/* Store the victim that was evicted from previous level, and sent to this level through read request. */
+void AssociativeCache::deposit_victim()
+{
+	status.push(AssCacheStatus::DEPOSIT_VICT_BLOCK_IN);
+	SAC_to_CWP *deposit_vict = new SAC_to_CWP{STORE, vict_predet_addr, vict_predet_data};
+	message *m = craft_msg(getName() + "_" + std::to_string(this->vict_predet_way), deposit_vict);
+	sendWithDelay(m, 0);
+}
+
+
+/* Begin core procedure to accomplish a read request */
 void AssociativeCache::read_begin()
 {
 	// Reset state for inner cache operation
@@ -102,49 +113,6 @@ void AssociativeCache::read_begin()
 	}
 	
 	status.push(AssCacheStatus::READ_IN);
-}
-
-
-/* Routine to follow when receiving a 'read' message from the upper level */
-void AssociativeCache::handle_msg_read_upper(cache_message *cm)
-{
-	status.push(AssCacheStatus::READ_UP);
-	
-	// Save the victim address if predetermined by upper level
-	if (this->repl_policy == ReplacementPolicy::PREDETERMINED)
-		vict_predet_addr = cm->victim.addr;
-	
-	// Save the target address
-	target_addr = cm->target.addr;
-	
-	// Store prev level victim if needed, else just begin to read from inner caches
-	if (cm->victim.data != nullptr) {
-		status.push(AssCacheStatus::DEPOSIT_VICT_BLOCK_IN);
-		for (auto &dc : ways) {
-			SAC_to_CWP *deposit_victim = new SAC_to_CWP{STORE, target_addr, nullptr};
-			message *m = craft_msg(dc->getName(), deposit_victim);
-			sendWithDelay(m, 0);
-		}
-	} else 
-		read_begin();
-}
-
-
-/* Routine to follow when receiving a 'read' message from the lower level */
-void AssociativeCache::handle_msg_read_lower(cache_message *cm) 
-{	
-	AssCacheStatus acs = status.top();
-	status.pop();
-	assert(acs == AssCacheStatus::MISS);
-	
-	// Keep the data pointer to reply (later) to the original request (if read)
-	fetched_data = cm->target.data;
-	
-	// Write the received block in the previously chosen location (possibly overwriting victim)
-	SAC_to_CWP *overwrite = new SAC_to_CWP{STORE, cm->target.addr, cm->target.data};
-	message *m = craft_msg(getName() + "_" + std::to_string(this->target_way), overwrite);
-	sendWithDelay(m, 0);
-	status.push(AssCacheStatus::REPLACE_BLOCK_IN);
 }
 
 
@@ -176,6 +144,53 @@ void AssociativeCache::read_complete()
 }
 
 
+void AssociativeCache::handle_read_hit_or_miss()
+{
+	if (op_hit) {	// read hit
+		read_complete();
+	} else {		// read miss
+		cache_miss_routine(target_addr);
+	}
+}
+
+
+/* Routine to follow when receiving a 'read' message from the upper level */
+void AssociativeCache::handle_msg_read_upper(cache_message *cm)
+{
+	status.push(AssCacheStatus::READ_UP);
+	
+	// Save the victim address if predetermined by upper level
+	if (this->repl_policy == ReplacementPolicy::PREDETERMINED) {
+		vict_predet_addr = cm->victim.addr;
+		vict_predet_data = cm->victim.data;
+	}
+	
+	// Save the target address
+	target_addr = cm->target.addr;
+	
+	// Begin read core procedure
+	read_begin();
+}
+
+
+/* Routine to follow when receiving a 'read' message from the lower level */
+void AssociativeCache::handle_msg_read_lower(cache_message *cm) 
+{
+	AssCacheStatus acs = status.top();
+	status.pop();
+	assert(acs == AssCacheStatus::MISS);
+	
+	// Keep the data pointer to reply (later) to the original request (if read)
+	fetched_data = cm->target.data;
+	
+	// Write the received block in the previously chosen location (possibly overwriting victim)
+	status.push(AssCacheStatus::REPLACE_BLOCK_IN);
+	SAC_to_CWP *overwrite = new SAC_to_CWP{STORE, cm->target.addr, cm->target.data};
+	message *m = craft_msg(getName() + "_" + std::to_string(this->target_way), overwrite);
+	sendWithDelay(m, 0);
+}
+
+
 /* Routine to follow when receiving a 'read' message from a nested direct cache */
 void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
@@ -190,7 +205,8 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 		if (cm->address == target_addr)	{	// miss + preserve addr means that location is free
 			free_way_available = true;
 			free_way = way_idx;
-		} else if (cm->address == vict_predet_addr && this->repl_policy == ReplacementPolicy::PREDETERMINED) {
+		} else if (repl_policy == ReplacementPolicy::PREDETERMINED && cm->address == vict_predet_addr) {
+			vict_predet_way = way_idx;
 			target_way = way_idx; 			// will be changed later if any dcache is free
 		}
 	}
@@ -204,14 +220,15 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 	status.pop();
 	assert(acs == AssCacheStatus::READ_IN);
 	
-	// Size of the data to be actually read
-	bool is_size_word = (mem_unit_size == sizeof(word_t));
-	
-	if (op_hit) {	// read hit
-		read_complete();
-	} else {		// read miss
-		cache_miss_routine(cm->address);
+	/* Deposit the victim. Must be done exactly here: before we wouldn't have info about the position (way) of the victim. 
+	 * Later, instead, we may select that address as victim again (before its content was updated locally), hence 
+	 * making the protocol much more complicated. */
+	if (this->repl_policy == ReplacementPolicy::PREDETERMINED && vict_predet_data != nullptr) {
+		deposit_victim();
+		return;
 	}
+	
+	handle_read_hit_or_miss();
 }
 
 
@@ -250,7 +267,7 @@ void AssociativeCache::handle_msg_write_lower(cache_message *cm)
 	assert(acs == AssCacheStatus::WRITE_UP);
 	
 	// Propagate ack message to previous level (same fields)
-	cache_message *ack = craft_ass_cache_msg(cm->op_type, cm->target, cm->victim);
+	cache_message *ack = craft_ass_cache_msg(OP_WRITE, cm->target, cm->victim);
 	message *m = craft_msg(upper_name, ack);
 	sendWithDelay(m, 0);
 	
@@ -259,7 +276,7 @@ void AssociativeCache::handle_msg_write_lower(cache_message *cm)
 }
 
 
-/* Routine to follow when receiving a 'write' message from a nested direct cache */
+/* Routine to follow when receiving a 'write with policies' message from a nested direct cache */
 void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 {
 	message *m;
@@ -319,7 +336,7 @@ void AssociativeCache::handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx)
 			assert(acs2 == AssCacheStatus::WRITE_UP);
 			// Generate ack message for previous level
 			cache_message *ack = craft_ass_cache_msg(OP_WRITE,
-					(mem_unit){.addr=target_addr, .data=fresh_data},
+					(mem_unit){.addr=target_addr, .data=nullptr},
 					(mem_unit){.addr=0, .data=nullptr});
 			m = craft_msg(upper_name, ack);
 		}
@@ -363,14 +380,14 @@ void AssociativeCache::handle_msg_overwrite_inner(unsigned way_idx)
 		case AssCacheStatus::WRITE_UP: 	// pending write
 			// Retry the same write that previously missed
 			status.pop();	// WRITE_UP, will be re-pushed by handle_msg_write_upper
-			cache_message *repeat_write = craft_ass_cache_msg(OP_WRITE,  // build clone of original request
+			cache_message *repeat_write = craft_ass_cache_msg(OP_WRITE, // build clone of original request
 					(mem_unit){.addr=target_addr, .data=fresh_data}, 	// same address/data of before
 					(mem_unit){.addr=0, .data=nullptr}); 				// won't miss this time
 			handle_msg_write_upper(repeat_write);
 			break;
 		}
-	} else {	// DEPOSIT_VICT_BLOCK_IN
-		read_begin();
+	} else {	// DEPOSIT_VICT_BLOCK_IN; resume previous read, checking if it was hit or miss
+		handle_read_hit_or_miss();
 	}
 }
 
