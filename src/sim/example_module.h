@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-#include "system/module.h"
-#include "system/structures.h"
+#include "orchestrator/module.h"
+#include "orchestrator/structures.h"
 
 class ExampleModule : public module
 {

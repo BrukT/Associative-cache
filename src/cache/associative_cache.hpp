@@ -5,18 +5,20 @@
 #include <string>
 #include <vector>
 
-#include "system/module.h"
-#include "system/structures.h"
-#include "system/System.h"
+#include "orchestrator/module.h"
+#include "orchestrator/structures.h"
+#include "orchestrator/System.h"
 
 #include "messages.hpp"
-#include "mock_write_policy.hpp"
 #include "policies.hpp"
+#include "CacheWritePolicies.h"
 #include "ReplacementHandler.h"
 
 
 class AssociativeCache : public module
 {
+	
+public:
 	enum class AssCacheStatus {
 		READ_UP,
 		READ_DOWN,
@@ -28,7 +30,14 @@ class AssociativeCache : public module
 		DEPOSIT_VICT_BLOCK_IN,
 		MISS
 	};
-	
+
+	AssociativeCache(System& sys, string name, string upper_name, string lower_name,
+			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
+			WritePolicy write_policy, AllocationPolicy alloc_policy,
+			ReplacementPolicy repl_policy, int priority=0);
+	void onNotify(message* m);	
+
+protected:
 	/* Naming */
 	string upper_name; 		// previous entity in the memory hierarchy (closer to cpu)
 	string lower_name; 		// next entity in the memory hierarchy (farther from cpu)
@@ -49,6 +58,8 @@ class AssociativeCache : public module
 	ReplacementHandler* rh;		// replacement policy handler
 	unsigned target_way;		// direct cache index where to write the missing block
 	addr_t vict_predet_addr; 	// address of victim when predetermined
+	word_t *vict_predet_data; 	// data of victim from previous level
+	unsigned vict_predet_way;	// index of way in which the predetermined victim is stored
 	/* Inner operation state */
 	addr_t target_addr;			// address of the operation in progress
 	word_t *fresh_data;			// fresh data to be written as requested by upper level
@@ -59,13 +70,16 @@ class AssociativeCache : public module
 	bool op_hit;				// hit/miss in any direct cache for current operation
 	bool propagate;				// propagate write request (issued by inner caches)
 	bool allocate; 				// allocate on write miss (issued by inner caches)
-	
+
+private:
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(string dest, void *content);
 	bool determine_way(mem_unit& victim);
 	void cache_miss_routine(addr_t addr);
+	void deposit_victim();
 	void read_begin();
 	void read_complete();
+	void handle_read_hit_or_miss();
 	void handle_msg_read_upper(cache_message *cm);
 	void handle_msg_read_lower(cache_message *cm);
 	void handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx);
@@ -73,12 +87,4 @@ class AssociativeCache : public module
 	void handle_msg_write_lower(cache_message *cm);
 	void handle_msg_write_inner(CWP_to_SAC *cm, unsigned way_idx);
 	void handle_msg_overwrite_inner(unsigned way_idx);
-	
-	
-public:
-	AssociativeCache(System& sys, string name, string upper_name, string lower_name,
-			unsigned n_ways, unsigned cache_size, unsigned block_size, unsigned mem_unit_size,
-			WritePolicy write_policy, AllocationPolicy alloc_policy,
-			ReplacementPolicy repl_policy, int priority=0);
-	void onNotify(message* m);
 };
