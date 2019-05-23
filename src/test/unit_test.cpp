@@ -5,7 +5,7 @@
 #include "catch.hpp"
 
 #include "cache/associative_cache.hpp"
-#include "system/System.h"
+#include "orchestrator/System.h"
 
 
 SCENARIO( "Associative caches can be added to the system", "[ass_cache][init]" ) {

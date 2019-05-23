@@ -5,13 +5,13 @@
 #include <string>
 #include <vector>
 
-#include "system/module.h"
-#include "system/structures.h"
-#include "system/System.h"
+#include "orchestrator/module.h"
+#include "orchestrator/structures.h"
+#include "orchestrator/System.h"
 
 #include "messages.hpp"
-#include "mock_write_policy.hpp"
 #include "policies.hpp"
+#include "CacheWritePolicies.h"
 #include "ReplacementHandler.h"
 
 
