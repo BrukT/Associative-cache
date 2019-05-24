@@ -71,7 +71,6 @@ protected:
 	bool propagate;				// propagate write request (issued by inner caches)
 	bool allocate; 				// allocate on write miss (issued by inner caches)
 
-private:
 	cache_message * craft_ass_cache_msg(bool op, mem_unit tgt, mem_unit vcm);
 	message * craft_msg(string dest, void *content);
 	bool determine_way(mem_unit& victim);

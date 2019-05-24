@@ -26,3 +26,35 @@ void TestableAssociativeCache::pop_stack()
 {
 	this->status.pop();
 }
+
+
+cache_message * TestableAssociativeCache::create_outprot_payload(
+		bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata)
+{
+	cache_message *msg = new cache_message();
+	
+	msg->op_type = op;
+	msg->target.addr = taddr;
+	msg->target.data = tdata;
+	msg->victim.addr = vaddr;
+	msg->victim.data = vdata;
+
+	return msg;
+}
+
+
+message * TestableAssociativeCache::create_outprot_message(
+		string dest, bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata)
+{
+	message *msg = new message();
+	
+	void *content = (void*)create_outprot_payload(op, taddr, tdata, vaddr, vdata);
+
+	msg->valid = 1;
+	msg->timestamp = getTime();
+	strncpy(msg->source, getName().c_str(), 10);
+	strncpy(msg->dest, dest.c_str(), 10);
+	msg->magic_struct = content;
+	
+	return msg;
+}

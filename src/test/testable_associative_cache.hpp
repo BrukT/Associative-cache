@@ -13,4 +13,7 @@ public:
 	void push_stack(AssociativeCache::AssCacheStatus sts);
 	AssociativeCache::AssCacheStatus top_stack();
 	void pop_stack();
+
+	cache_message * create_outprot_payload(bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata);
+	message * create_outprot_message(string dest, bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata);
 };
