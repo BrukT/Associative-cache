@@ -98,6 +98,9 @@ void AssociativeCache::deposit_victim()
 /* Begin core procedure to accomplish a read request */
 void AssociativeCache::read_begin()
 {
+#ifdef VERBOSE
+	std::cout << getName() << ": (read_begin)" << std::endl;
+#endif
 	// Reset state for inner cache operation
 	fetched_data = nullptr;
 	op_hit = false;
@@ -110,6 +113,9 @@ void AssociativeCache::read_begin()
 		SAC_to_CWP *read_dcache = new SAC_to_CWP{LOAD, target_addr, nullptr};
 		message *m = craft_msg(dc->getName(), read_dcache);
 		sendWithDelay(m, 0);
+#ifdef VERBOSE
+		std::cout << getName() << ": Sending LOAD request to " << dc->getName() << std::endl;
+#endif
 	}
 	
 	status.push(AssCacheStatus::READ_IN);
@@ -157,6 +163,10 @@ void AssociativeCache::handle_read_hit_or_miss()
 /* Routine to follow when receiving a 'read' message from the upper level */
 void AssociativeCache::handle_msg_read_upper(cache_message *cm)
 {
+#ifdef VERBOSE
+	std::cout << getName() << ": (handle_msg_read_upper) Request to read address " << cm->target.addr << std::endl;
+#endif
+
 	status.push(AssCacheStatus::READ_UP);
 	
 	// Save the victim address if predetermined by upper level
@@ -235,6 +245,10 @@ void AssociativeCache::handle_msg_read_inner(CWP_to_SAC *cm, unsigned way_idx)
 /* Routine to follow when receiving a 'write' message from the upper level */
 void AssociativeCache::handle_msg_write_upper(cache_message *cm)
 {
+#ifdef VERBOSE
+	std::cout << getName() << ": (handle_msg_write_upper) Request to write address " << cm->target.addr << std::endl;
+#endif
+
 	status.push(AssCacheStatus::WRITE_UP);
 
 	// Save the victim address if predetermined by upper level
@@ -407,8 +421,9 @@ AssociativeCache::AssociativeCache(System& sys, string name, string upper_name, 
 	  repl_policy(rp),
 	  rh(nullptr)
 {
-	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG
-	
+#ifdef VERBOSE
+	std::cout << getName() << ": Building associative cache" << std::endl;
+#endif	
 	// Initialize replacement handler
 	unsigned offset_size = (unsigned)std::round(std::log2(block_size));
 	unsigned index_size = (unsigned)std::round(std::log2(cache_size/n_ways/block_size));
@@ -443,13 +458,16 @@ AssociativeCache::AssociativeCache(System& sys, string name, string upper_name, 
 
 void AssociativeCache::onNotify(message* m)
 {
-	std::cout << getName() << ": was notified" << std::endl;	// DEBUG
-	
 	// Check if this is the recipient of the message (if not, exit)
 	if (getName().compare(m->dest) != 0)
 		return;
 
 	string sender = m->source;
+
+#ifdef VERBOSE
+	std::cout << getName() << ": (onNotify) Notification received from " << sender 
+			  << " stack_size=" << status.size() << std::endl;
+#endif
 
 	// Demultiplex based on sender
 	if (upper_name.compare(sender) == 0) {
@@ -499,4 +517,7 @@ void AssociativeCache::onNotify(message* m)
 	} else {
 		std::cerr << "Error: can't recognize message sender" << std::endl;
 	}
+#ifdef VERBOSE
+	std::cout << getName() << ": (onNotify) Exiting. stack_size =" << status.size() << std::endl;
+#endif
 }

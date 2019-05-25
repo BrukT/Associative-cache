@@ -26,6 +26,7 @@ public:
 	module(string name, int priority);
 	string getName();
 	int getPriority();
+	vector<event*> getEvents();
 	vector<event*> initialize();
 	vector<event*> notify(event* e);
 };
