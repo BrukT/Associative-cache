@@ -28,6 +28,12 @@ void TestableAssociativeCache::pop_stack()
 }
 
 
+unsigned TestableAssociativeCache::size_stack()
+{
+	return this->status.size();
+}
+
+
 void TestableAssociativeCache::put_message(message *m)
 {
 	this->onNotify(m);

@@ -13,6 +13,7 @@ public:
 	void push_stack(AssociativeCache::AssCacheStatus sts);
 	AssociativeCache::AssCacheStatus top_stack();
 	void pop_stack();
+	unsigned size_stack();
 
 	void put_message(message *m);
 

@@ -421,8 +421,9 @@ AssociativeCache::AssociativeCache(System& sys, string name, string upper_name, 
 	  repl_policy(rp),
 	  rh(nullptr)
 {
-	std::cout << getName() << ": building associative cache" << std::endl;	// DEBUG
-	
+#ifdef VERBOSE
+	std::cout << getName() << ": Building associative cache" << std::endl;
+#endif	
 	// Initialize replacement handler
 	unsigned offset_size = (unsigned)std::round(std::log2(block_size));
 	unsigned index_size = (unsigned)std::round(std::log2(cache_size/n_ways/block_size));

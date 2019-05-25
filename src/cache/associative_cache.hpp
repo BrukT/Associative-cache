@@ -21,9 +21,7 @@ class AssociativeCache : public module
 public:
 	enum class AssCacheStatus {
 		READ_UP,
-		READ_DOWN,
 		WRITE_UP,
-		WRITE_DOWN,
 		READ_IN,
 		WRITE_WORD_IN,
 		REPLACE_BLOCK_IN,
