@@ -1,5 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
+#include <iostream>
+#include <cstring>
 #include <type_traits>
 
 #include "catch.hpp"
@@ -9,7 +11,7 @@
 #include "orchestrator/System.h"
 
 
-SCENARIO( "Associative caches can created and added to the system", "[ass_cache][init]" ) {
+SCENARIO( "Associative caches can be instantiated and work properly", "[ass_cache][init]" ) {
 
     GIVEN( "A system" ) {
         System system;
@@ -42,5 +44,97 @@ SCENARIO( "Associative caches can created and added to the system", "[ass_cache]
 				system.addModule(ac);
 			}
         }
+    }
+
+    GIVEN( "An associative cache ") {
+    	System system;
+    	TestableAssociativeCache *ac = new TestableAssociativeCache(system, "L1", "cpu", "L2", 2, 65536, 64, 2,
+				WritePolicy::WRITE_THROUGH, AllocationPolicy::WRITE_AROUND, ReplacementPolicy::PLRU);
+
+    	WHEN (" A read request arrives from the previous level") {
+
+    		message *m = TestableAssociativeCache::create_outprot_message(
+    				"cpu", "L1", 0, OP_READ, 0xAA, nullptr, 0x00, nullptr);
+    		ac->put_message(m);
+
+    	  	THEN (" Internal state remains consistent ") {
+
+				REQUIRE (ac->top_stack() == AssociativeCache::AssCacheStatus::READ_IN);
+				ac->pop_stack();
+				REQUIRE (ac->top_stack() == AssociativeCache::AssCacheStatus::READ_UP);
+
+    		} AND_THEN ( " Requests sent to direct caches are correct " ) {
+
+    			std::vector<event*> evts = ac->getEvents();
+    			message *m0 = evts[0]->m;
+    			message *m1 = evts[1]->m;
+    			SAC_to_CWP *payload0 = (SAC_to_CWP *)m0->magic_struct;
+    			SAC_to_CWP *payload1 = (SAC_to_CWP *)m1->magic_struct;
+    			REQUIRE(payload0->op_type == LOAD);
+    			REQUIRE(payload0->address == 0xAA);
+    			REQUIRE(payload1->op_type == LOAD);
+    			REQUIRE(payload1->address == 0xAA);
+    		} AND_THEN ( " It behaves correctly to replies from direct caches " ) {
+
+    			word_t *block = (word_t*)malloc(16);
+    			memcpy(block, "abcdABCDefghEFGH", 16);
+
+    			WHEN (" One of the responses is a hit ") {
+
+    				message *reply0 = TestableAssociativeCache::create_inprot_reply_message(
+    						"L1_0", "L1", 0, false, 0xAA, nullptr, NOT_NEEDED);
+    				message *reply1 = TestableAssociativeCache::create_inprot_reply_message(
+    						"L1_1", "L1", 0, true, 0xAA, block, NOT_NEEDED);
+    				ac->put_message(reply0);
+		    		ac->put_message(reply1);
+
+		    		THEN(" TODO: status and next request are correct " ) {
+		    			/* TODO */
+		    		}
+		    	} AND_WHEN (" All the responses are misses ") {
+
+    				message *reply0 = TestableAssociativeCache::create_inprot_reply_message(
+    						"L1_0", "L1", 0, false, 0xAA, nullptr, NOT_NEEDED);
+    				message *reply1 = TestableAssociativeCache::create_inprot_reply_message(
+    						"L1_1", "L1", 0, false, 0xAA, nullptr, NOT_NEEDED);
+    				ac->put_message(reply0);
+		    		ac->put_message(reply1);
+
+		    		THEN( " TODO: status and next request are correct " ) {
+		    			/* TODO */
+		    		}
+		    	}
+    		}
+    	}
+
+    	WHEN (" A write request arrives from the previous level") {
+
+    		word_t *data = (word_t*)malloc(1);
+    		*data = 0x99;
+    		message *m = TestableAssociativeCache::create_outprot_message(
+    				"cpu", "L1", 0, OP_WRITE, 0xAA, data, 0x00, nullptr);
+    		ac->put_message(m);
+
+    	  	THEN (" internal state remains consistent ") {
+
+				REQUIRE (ac->top_stack() == AssociativeCache::AssCacheStatus::WRITE_WORD_IN);
+				ac->pop_stack();
+				REQUIRE (ac->top_stack() == AssociativeCache::AssCacheStatus::WRITE_UP);
+
+    		} AND_THEN ( "response message is the expected one " ) {
+
+    			std::vector<event*> evts = ac->getEvents();
+    			message *m0 = evts[0]->m;
+    			message *m1 = evts[1]->m;
+    			SAC_to_CWP *payload0 = (SAC_to_CWP *)m0->magic_struct;
+    			SAC_to_CWP *payload1 = (SAC_to_CWP *)m1->magic_struct;
+    			REQUIRE(payload0->op_type == WRITE_WITH_POLICIES);
+    			REQUIRE(payload0->address == 0xAA);
+    			REQUIRE(*(payload0->data) == 0x99);
+    			REQUIRE(payload1->op_type == WRITE_WITH_POLICIES);
+    			REQUIRE(payload1->address == 0xAA);
+    			REQUIRE(*(payload1->data) == 0x99);
+    		}
+    	}
     }
 }

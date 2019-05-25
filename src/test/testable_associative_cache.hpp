@@ -14,6 +14,9 @@ public:
 	AssociativeCache::AssCacheStatus top_stack();
 	void pop_stack();
 
-	cache_message * create_outprot_payload(bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata);
-	message * create_outprot_message(string dest, bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata);
+	void put_message(message *m);
+
+	static cache_message * create_outprot_payload(bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata);
+	static message * create_outprot_message(string src, string dest, int time, bool op, addr_t taddr, word_t *tdata, addr_t vaddr, word_t *vdata);
+	static message * create_inprot_reply_message(string src, string dest, int time, bool hit_flag, addr_t addr, word_t *data, WriteResponse wr);
 };

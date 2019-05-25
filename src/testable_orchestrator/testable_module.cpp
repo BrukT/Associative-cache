@@ -1,8 +1,10 @@
+/* Custom version of class 'module' of the orchestrator, to allow easier testing */
+
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "module.h"
+#include "orchestrator/module.h"
 
 int module::_messageId = 0;
 
@@ -10,6 +12,8 @@ module::module(string name, int priority){//Default priority is 0. Higher the va
 	_name = name;
 	_priority = priority;
 	_currentTime = 0;
+
+	// std::cout << "Testable module" << std::endl;
 }
 
 string module::getName(){return _name;};
@@ -23,6 +27,12 @@ vector<event*> module::initialize(){
 	return result;
 };
 
+
+vector<event*> module::getEvents() {
+	return events;
+}
+
+
 //This method is used by the system, should not be called directly
 vector<event*> module::notify(event* e){
 	_currentTime = e->time;
@@ -35,13 +45,6 @@ vector<event*> module::notify(event* e){
 //Returns the current simulated system time
 int module::getTime(){
 	return _currentTime;
-}
-
-
-// 
-vector<event*> module::getEvents(){
-	std::cerr << "Error: this function shouldn't be called outside of testing environment " << std::endl;
-	return std::vector<event*>();
 }
 
 //Custom modules must push their messages using this function (delay is optional)
