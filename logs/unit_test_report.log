@@ -1,0 +1,1343 @@
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0;37munit_test is a Catch v2.7.2 host application.
+Run with -? for options
+
+[0m-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: A system
+       When: A (testable) associative cache is created
+       Then: Its name is accessible and correct
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:25
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:26: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( name.compare(ac->getName()) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: A system
+       When: A (testable) associative cache is created
+        And: Its internal stack is accessible and working 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:29
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:31: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::READ_UP )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+[0;37msrc/test/unit_test.cpp:34: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::MISS )
+[0mwith expansion:
+[1;33m  6 == 6
+[0m
+[0;37msrc/test/unit_test.cpp:37: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::READ_UP )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: A system
+       When: A (testable) associative cache is created
+        And: It can be added as module to the system
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:41
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:42: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( std::is_base_of<module, AssociativeCache>::value )
+[0mwith expansion:
+[1;33m  true
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+       Then: The internal state (stack) remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:60
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:62: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::READ_IN )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:64: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::READ_UP )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+       Then: The requests sent to direct caches are correct
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:68
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:71: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:76: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload0->op_type == LOAD )
+[0mwith expansion:
+[1;33m  5 == 5
+[0m
+[0;37msrc/test/unit_test.cpp:77: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload0->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:78: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload1->op_type == LOAD )
+[0mwith expansion:
+[1;33m  5 == 5
+[0m
+[0;37msrc/test/unit_test.cpp:79: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload1->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: One of the direct caches has the requested data (hit)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:86
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:95: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:97: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: One of the direct caches has the requested data (hit)
+       Then: Internal state remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:100
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:102: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: One of the direct caches has the requested data (hit)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:86
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:95: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:97: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: One of the direct caches has the requested data (hit)
+       Then: Response to upper level is correct
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:105
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:107: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == false )
+[0mwith expansion:
+[1;33m  false == false
+[0m
+[0;37msrc/test/unit_test.cpp:108: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.addr == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:109: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( *(payload->target.data) == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:112
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:122: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:124: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+       Then: The internal state remains consistent 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:127
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:129: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:130: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::MISS )
+[0mwith expansion:
+[1;33m  6 == 6
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:112
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:122: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:124: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+       Then: A request to read from next level is correctly sent 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:133
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:135: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == false )
+[0mwith expansion:
+[1;33m  false == false
+[0m
+[0;37msrc/test/unit_test.cpp:136: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.addr == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:137: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.data == nullptr )
+[0mwith expansion:
+[1;33m  nullptr == nullptr
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:112
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:122: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:124: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+   And when: Requested data eventually comes from the next level 
+       Then: The internal state remains consistent 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:148
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:149: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:150: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::REPLACE_BLOCK_IN )
+[0mwith expansion:
+[1;33m  4 == 4
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:112
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:122: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:124: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+   And when: Requested data eventually comes from the next level 
+       Then: A direct cache is correctly prompted to store the just fetched
+             block 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:153
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:156: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 1 )
+[0mwith expansion:
+[1;33m  1 == 1
+[0m
+[0;37msrc/test/unit_test.cpp:159: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == STORE )
+[0mwith expansion:
+[1;33m  6 == 6
+[0m
+[0;37msrc/test/unit_test.cpp:160: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:161: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->data == block )
+[0mwith expansion:
+[1;33m  0x0000561d3ba7fd70 == 0x0000561d3ba7fd70
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:112
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:122: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:124: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The fetched block has been stored in this cache
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:164
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:171: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The fetched block has been stored in this cache
+       Then: The internal state remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:175
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:177: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:54
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:84: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:112
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:122: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:124: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The fetched block has been stored in this cache
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:164
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:171: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A read request from the previous level is processed
+   And when: None of the direct caches has the requested data (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The fetched block has been stored in this cache
+       Then: The data is correctly sent to the previous level too, that
+             requested it first
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:180
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:182: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+[0;37msrc/test/unit_test.cpp:183: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == false )
+[0mwith expansion:
+[1;33m  false == false
+[0m
+[0;37msrc/test/unit_test.cpp:184: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.addr == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:185: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( *(payload->target.data) == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+       Then: The internal state (stack) remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:200
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:202: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::WRITE_WORD_IN )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:204: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::WRITE_UP )
+[0mwith expansion:
+[1;33m  1 == 1
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+        And: The requests sent to direct caches are correct
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:206
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:209: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:214: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload0->op_type == WRITE_WITH_POLICIES )
+[0mwith expansion:
+[1;33m  7 == 7
+[0m
+[0;37msrc/test/unit_test.cpp:215: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload0->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:216: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( *(payload0->data) == 0x1234 )
+[0mwith expansion:
+[1;33m  4660 == 4660 (0x1234)
+[0m
+[0;37msrc/test/unit_test.cpp:217: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload1->op_type == WRITE_WITH_POLICIES )
+[0mwith expansion:
+[1;33m  7 == 7
+[0m
+[0;37msrc/test/unit_test.cpp:218: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload1->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:219: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( *(payload1->data) == 0x1234 )
+[0mwith expansion:
+[1;33m  4660 == 4660 (0x1234)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: One of the direct caches contains that line of cache, so that
+             write succeeds (hit)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:226
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:235: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:237: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: One of the direct caches contains that line of cache, so that
+             write succeeds (hit)
+       Then: Internal state remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:240
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:242: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: One of the direct caches contains that line of cache, so that
+             write succeeds (hit)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:226
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:235: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:237: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: One of the direct caches contains that line of cache, so that
+             write succeeds (hit)
+       Then: Response to upper level is correct
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:245
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:247: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == true )
+[0mwith expansion:
+[1;33m  true == true
+[0m
+[0;37msrc/test/unit_test.cpp:248: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.addr == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:249: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.data == nullptr )
+[0mwith expansion:
+[1;33m  nullptr == nullptr
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+       Then: The internal state remains consistent 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:267
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:269: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:270: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::MISS )
+[0mwith expansion:
+[1;33m  6 == 6
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+       Then: A request to read from next level is correctly sent 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:273
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:275: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == false )
+[0mwith expansion:
+[1;33m  false == false
+[0m
+[0;37msrc/test/unit_test.cpp:276: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.addr == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:277: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.data == nullptr )
+[0mwith expansion:
+[1;33m  nullptr == nullptr
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+       Then: The internal state remains consistent 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:288
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:289: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:290: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::REPLACE_BLOCK_IN )
+[0mwith expansion:
+[1;33m  4 == 4
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+       Then: A direct cache is correctly prompted to store the just fetched
+             block 
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:293
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:296: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 1 )
+[0mwith expansion:
+[1;33m  1 == 1
+[0m
+[0;37msrc/test/unit_test.cpp:299: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == STORE )
+[0mwith expansion:
+[1;33m  6 == 6
+[0m
+[0;37msrc/test/unit_test.cpp:300: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:301: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->data == block )
+[0mwith expansion:
+[1;33m  0x0000561d3ba8a3d0 == 0x0000561d3ba8a3d0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The block fetched from below has been also stored in this cache
+       Then: The internal state remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:310
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:312: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 2 )
+[0mwith expansion:
+[1;33m  2 == 2
+[0m
+[0;37msrc/test/unit_test.cpp:313: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->top_stack() == AssociativeCache::AssCacheStatus::WRITE_WORD_IN )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The block fetched from below has been also stored in this cache
+       Then: The write request that previously missed gets repeated
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:316
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:319: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:324: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload0->op_type == WRITE_WITH_POLICIES )
+[0mwith expansion:
+[1;33m  7 == 7
+[0m
+[0;37msrc/test/unit_test.cpp:325: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload0->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:326: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( *(payload0->data) == 0x1234 )
+[0mwith expansion:
+[1;33m  4660 == 4660 (0x1234)
+[0m
+[0;37msrc/test/unit_test.cpp:327: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload1->op_type == WRITE_WITH_POLICIES )
+[0mwith expansion:
+[1;33m  7 == 7
+[0m
+[0;37msrc/test/unit_test.cpp:328: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload1->address == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:329: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( *(payload1->data) == 0x1234 )
+[0mwith expansion:
+[1;33m  4660 == 4660 (0x1234)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The block fetched from below has been also stored in this cache
+   And when: The new data (coming from previous level) has been also written
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:332
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:342: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 4 )
+[0mwith expansion:
+[1;33m  4 == 4
+[0m
+[0;37msrc/test/unit_test.cpp:344: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The block fetched from below has been also stored in this cache
+   And when: The new data (coming from previous level) has been also written
+       Then: Internal state remains consistent
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:347
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:349: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( ac->size_stack() == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:192
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:224: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( block[21] == 0x6867 )
+[0mwith expansion:
+[1;33m  26727 == 26727 (0x6867)
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:252
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:262: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 3 )
+[0mwith expansion:
+[1;33m  3 == 3
+[0m
+[0;37msrc/test/unit_test.cpp:264: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("L2").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The block fetched from below has been also stored in this cache
+   And when: The new data (coming from previous level) has been also written
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:332
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:342: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( evts.size() == 4 )
+[0mwith expansion:
+[1;33m  4 == 4
+[0m
+[0;37msrc/test/unit_test.cpp:344: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( string("cpu").compare(m->dest) == 0 )
+[0mwith expansion:
+[1;33m  0 == 0
+[0m
+-------------------------------------------------------------------------------
+[0mScenario: Associative caches can be instantiated and work properly
+[0m[0m      Given: An associative cache 
+       When: A write request arrives from the previous level
+   And when: None of the direct caches has the right block where to write
+             (miss)
+   And when: Requested data eventually comes from the next level 
+   And when: The block fetched from below has been also stored in this cache
+   And when: The new data (coming from previous level) has been also written
+       Then: Response to upper level is correct
+[0m-------------------------------------------------------------------------------
+[0;37msrc/test/unit_test.cpp:352
+[0m...............................................................................
+
+[0;37msrc/test/unit_test.cpp:354: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->op_type == true )
+[0mwith expansion:
+[1;33m  true == true
+[0m
+[0;37msrc/test/unit_test.cpp:355: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.addr == 0xAAAA )
+[0mwith expansion:
+[1;33m  43690 == 43690 (0xaaaa)
+[0m
+[0;37msrc/test/unit_test.cpp:356: [0m[0;32mPASSED:
+[0m[0;36m  REQUIRE( payload->target.data == nullptr )
+[0mwith expansion:
+[1;33m  nullptr == nullptr
+[0m
+[1;31m[0m[1;33m[0m[1;32m===============================================================================[0m
+[1;32mAll tests passed[0m (133 assertions in 1 test case)
+
