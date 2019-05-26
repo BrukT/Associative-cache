@@ -6,7 +6,9 @@ TestableAssociativeCache::TestableAssociativeCache(System& sys, string name, str
 			WritePolicy wp, AllocationPolicy ap, ReplacementPolicy rp, int prio)
 	: AssociativeCache(sys, name, upper_name, lower_name, n_ways, cache_size, block_size, mem_unit_size, wp, ap, rp, prio)
 {
+#ifdef VERBOSE
 	std::cout << "Allocated testable version of AssociativeCache" << std::endl;
+#endif
 }
 
 

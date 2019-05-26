@@ -147,6 +147,9 @@ void AssociativeCache::read_complete()
 	);
 	message *m = craft_msg(upper_name, read_response);
 	sendWithDelay(m, 0);
+#ifdef VERBOSE
+	std::cout << getName() << ": (read_complete) Completed request to read address " << target_addr << std::endl;
+#endif
 }
 
 

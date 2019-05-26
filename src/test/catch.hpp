@@ -14732,7 +14732,7 @@ int main (int argc, char * const argv[]) {
 #define CATCH_WHEN( desc )      INTERNAL_CATCH_DYNAMIC_SECTION( "     When: " << desc )
 #define CATCH_AND_WHEN( desc )  INTERNAL_CATCH_DYNAMIC_SECTION( " And when: " << desc )
 #define CATCH_THEN( desc )      INTERNAL_CATCH_DYNAMIC_SECTION( "     Then: " << desc )
-#define CATCH_AND_THEN( desc )  INTERNAL_CATCH_DYNAMIC_SECTION( "      And: " << desc )
+#define CATCH_AND_THEN( desc )  INTERNAL_CATCH_DYNAMIC_SECTION( " And then: " << desc )
 
 // If CATCH_CONFIG_PREFIX_ALL is not defined then the CATCH_ prefix is not required
 #else

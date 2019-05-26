@@ -3,8 +3,8 @@ CPPFLAGS=-std=c++11
 
 INC = -I$(SRC) -I$(SRC)/replacement/source -I$(SRC)/write_policy
 
-VERB = -DVERBOSE
-#VERB = 
+#VERB = -DVERBOSE
+VERB = 
 
 BIN = bin
 BUILD = build
